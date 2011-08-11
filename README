@@ -1,3 +1,5 @@
-Projet Hyperion, ensemble de codes décrivant des automates pour Vikidia.
+Projet Hypérion, ensemble de codes décrivant des automates pour Vikidia.
+
+Licence : GPL v.3. Merci de conserver les encadrés mentionnant le ou les auteurs et rappelant la licence précitée.
 
 Tous les automates partagent une base de fonctions commune : base et edit.
