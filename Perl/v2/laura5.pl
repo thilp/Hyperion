@@ -45,10 +45,7 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 # La confiance de LAURA augmentant systématiquement en fonction de l’âge de l’utilisateur sur Vikidia, la formule de notation doit prendre linéairement
 #   en compte ce paramètre. Il est modéré par le nombre d’avertissements reçus et évolue en fonction des statuts de l’utilisateur.
 #   Enfin, une partie de la note reste constamment variable pour les ajustements ad hoc de LAURA, qui dépendent seulement des modifications.
-# Exemple : confiance = seuil_de_confiance_statutaire + ( ( âge + 2*nbre_de_modifications ) / 3 ) / nbre_d’avertissements + note_de_circonstance.
-#   Cette ébauche de formule prend en compte le statut de l’utilisateur (un statut « plus élevé » dans la hiérarchie de LAURA écrasant les autres),
-#     sa « note de circonstance » (attribuée en fonction des modifications) et la moyenne pondérée de son âge et de son activité — celle-ci étant
-#     deux fois plus importante — moyenne divisée par le nombre d’avertissements reçus sur la page de discussion (par des contributeurs au statut correct).
-#   On peut l’améliorer : y incorporer les blocages (fréquence, durée cumulée), la présence d’un bandeau « IP scolaire » sur la page de discussion,
-#     utiliser une puissance de 2 pour accroître l’importance des avertissements, son ratio (modification_de_pages_existantes / création_de_nouvelles_pages)
-#     et des statistiques de déclenchement des balises de filtre anti-erreur.
+# Exemple : c_{totale} = \frac{1}{n_{semblables}}\times\sum_{semblables}\left((b_{scolaire}+1)\times\frac{c_{statut}+\frac{t_{age}+2n_{contribs}}{3(n_{averts}^2+n_{balises}+1)}}{2^{n_{blocages}}}\right)+c_{instant}
+#   (où l’indice « semblables » représente, dans le cas d’une adresse IP, toutes les adresses connues de son masque /24 ;
+#     dans le cas d’un utilisateur, cela n’a pas de signification et on le simplifie par le cas d’une adresse IP « seule parmi son masque » ;
+#     et où b_{scolaire} représente la variable binaire valant 1 si la PdD comporte {{ip scolaire}}, 0 sinon)
