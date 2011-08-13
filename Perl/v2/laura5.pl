@@ -49,3 +49,28 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 #   (où l’indice « semblables » représente, dans le cas d’une adresse IP, toutes les adresses connues de son masque /24 ;
 #     dans le cas d’un utilisateur, cela n’a pas de signification et on le simplifie par le cas d’une adresse IP « seule parmi son masque » ;
 #     et où b_{scolaire} représente la variable binaire valant 1 si la PdD comporte {{ip scolaire}}, 0 sinon)
+#
+# Pour calculer cette note de confiance, il est nécessaire de disposer des informations suivantes :
+#  * IP connues du même masque /24 (d’où leur nombre et leur note, d’où la moyenne de leur note) ;
+#  * compte utilisé par des scolaires ;
+#  * statut de l’utilisateur ;
+#  * âge de l’utilisateur sur Vikidia ;
+#  * nombre de modifications effectuées ;
+#  * nombre d’avertissements reçus ;
+#  * nombre de balises déclenchées ;
+#  * nombre de blocages subis.
+#
+# LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
+# Format ?
+# (?<=\n)
+# "NOM_UTILISATEUR";(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
+#                    ip ?       () si pas ip                          scolaire ?
+#   (\*|user|autoconfirmed|bot|sysop|bureaucrat|patroller|autopatrol|developer|oversight|checkuser|abusefilter)[,…];
+#               groupes de l’utilisateur
+#   
+
+sub getAge_user {
+    # renvoie le nombre de secondes écoulé depuis la première contribution
+    my ($annee_p,$mois_p,$jour_p,$heure_p,$minute_p,$seconde_p) = (requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(2007)-(06)-(09)T(22):(27):(06)Z"/);
+    
+}
