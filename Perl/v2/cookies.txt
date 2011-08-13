@@ -1,0 +1,5 @@
+#LWP-Cookies-1.0
+Set-Cookie3: vikidia_fr_wk_Token=22071df02c3c5031a85ceedc639e2c6d; path="/"; domain=fr.vikidia.org; path_spec; expires="2011-09-10 21:38:55Z"; httponly; version=0
+Set-Cookie3: vikidia_fr_wk_UserID=2335; path="/"; domain=fr.vikidia.org; path_spec; expires="2011-09-10 21:38:55Z"; httponly; version=0
+Set-Cookie3: vikidia_fr_wk_UserName=LAURA; path="/"; domain=fr.vikidia.org; path_spec; expires="2011-09-10 21:38:55Z"; httponly; version=0
+Set-Cookie3: vikidia_fr_wk__session=os1flf9f9e130ofilcfttbgvt6; path="/"; domain=fr.vikidia.org; path_spec; discard; HttpOnly; version=0

@@ -24,7 +24,7 @@ use HTML::Entities;
     )
   );
   $ua->timeout(10);
-  $ua->from('********@*********');
+  $ua->from('*******@*********');
 # FIN GLOBAL
 
 sub requeteAPI {
@@ -60,7 +60,8 @@ sub connexion {
   return $result eq 'Success';
 }
 
-my ($pseudo,$mdp,$retour) = ("LAURA","******************");
+my $pass = <STDIN>;
+my ($pseudo,$mdp,$retour) = ("LAURA",$pass);
 if (-e "cookies.txt"){
   print "Usage du cookie déjà présent.\n";
 } else {
