@@ -71,7 +71,13 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 #   
 
 sub getAge_user {
-    # renvoie le nombre approximatif de jours écoulés depuis la première contribution
-    my ($annee,$mois,$jour,$heure,$minute,$seconde) = (requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/);
-    return int( ( time() - Mktime($annee_p,$mois_p,$jour_p,$heure_p,$minute_p,$seconde_p) ) / 86400 );
+# renvoie le nombre approximatif de jours écoulés depuis la première contribution
+    my ($annee,$mois,$jour,$heure,$minute,$seconde) =
+	(requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/);
+    return int( ( time() - Mktime($annee,$mois,$jour,$heure,$minute,$seconde) ) / 86400 );
+}
+
+sub getStatut_user {
+# renvoie le statut le plus élevé (dans la hiérarchie de LAURA) de l’utilisateur
+    
 }
