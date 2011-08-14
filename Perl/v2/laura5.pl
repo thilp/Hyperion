@@ -17,6 +17,7 @@
 #  avec les patrouilleurs et les administrateurs.
 
 use Data::Dumper;
+use Date::Calc qw(Mktime);
 require "edit.pl";
 
 sub getMembres_d1_groupe {
@@ -70,7 +71,7 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 #   
 
 sub getAge_user {
-    # renvoie le nombre de secondes écoulé depuis la première contribution
-    my ($annee_p,$mois_p,$jour_p,$heure_p,$minute_p,$seconde_p) = (requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(2007)-(06)-(09)T(22):(27):(06)Z"/);
-    
+    # renvoie le nombre approximatif de jours écoulés depuis la première contribution
+    my ($annee,$mois,$jour,$heure,$minute,$seconde) = (requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/);
+    return int( ( time() - Mktime($annee_p,$mois_p,$jour_p,$heure_p,$minute_p,$seconde_p) ) / 86400 );
 }
