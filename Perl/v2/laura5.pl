@@ -20,6 +20,17 @@ use Data::Dumper;
 use Date::Calc qw(Mktime Localtime);
 require "edit.pl";
 
+# CHARGEMENT DE LA BASE DE DONNÉES
+if (-e "lauraperl.dis") { open(BDD, "+<lauraperl.dis"); }
+else { open(BDD, "+>lauraperl.dis"); }
+my %bdd;
+while ( <BDD> ) {
+    my ($nom,$attr) = split(/:/,$_);
+    $bdd{$nom} = chomp($attr);
+}
+close(BDD);
+# FIN CHARGEMENT
+
 sub getMembres_d1_groupe {
     # Récupère la liste des membres d’un groupe d’utilisateurs
     return (requeteAPI('action#=query#&list#=allusers#&aulimit#=5000#&augroup#='.$_[0]) =~ m/\bname="([^"]+)"/g);
@@ -64,10 +75,10 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 # LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
 # Format ?
 # (?<=\n)
-# "NOM_UTILISATEUR";(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
-#                    ip ?       () si pas ip                          scolaire ?
+# "NOM";(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
+#        ip ?       () si pas ip                          scolaire ?
 #   (\*|user|autoconfirmed|bot|sysop|bureaucrat|patroller|autopatrol|developer|oversight|checkuser|abusefilter)[,…];
-#               groupes de l’utilisateur
+#               groupe majeur de l’utilisateur
 #   
 
 sub unix_of_wtimestamp {
@@ -112,6 +123,25 @@ sub getUser_infos {
 	else { $statut = "autre"; }
     }
     if (!defined($statut)) { my $statut = "*"; }
+    return ($age,$editcount,$statut);
 }
 
-
+sub ecritUser_infos {
+# pour l’utilisateur donné en argument (0), écrit les informations passées en argument (1)
+    $bdd{$_[0]} = $_[1]; return 1;
+}
+sub rechercheUser_infos {
+# renvoie les informations de l’utilisateur donné en argument
+    return $bdd{$_[0]};
+}
+sub majBDD {
+# met à jour la base de données sauvegardée : écrit le contenu de %bdd dans le fichier lauraperl.dis
+    # copie de secours du fichier
+    open(OP,"|cp lauraperl.dis lauraperl.dis.sauv"); close(OP);
+    open(BDD, ">lauraperl.dis");
+    foreach $cle (keys(%bdd)) {
+	print( BDD $cle.":".$bdd{$cle}."\n" );
+    }
+    close(BDD);
+    return 1;
+}
