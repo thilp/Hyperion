@@ -17,7 +17,7 @@
 #  avec les patrouilleurs et les administrateurs.
 
 use Data::Dumper;
-use Date::Calc qw(Mktime);
+use Date::Calc qw(Mktime Localtime);
 require "edit.pl";
 
 sub getMembres_d1_groupe {
@@ -70,14 +70,48 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 #               groupes de l’utilisateur
 #   
 
-sub getAge_user {
-# renvoie le nombre approximatif de jours écoulés depuis la première contribution
-    my ($annee,$mois,$jour,$heure,$minute,$seconde) =
-	(requeteAPI("action#=query#&list#=usercontribs#&ucdir#=newer#&ucuser#=".$_[0]) =~ m/timestamp="(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z"/);
-    return int( ( time() - Mktime($annee,$mois,$jour,$heure,$minute,$seconde) ) / 86400 );
+sub unix_of_wtimestamp {
+# transforme un timestamp MediaWiki en valeur de temps Unix
+    return Mktime($_[0] =~ m/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/);
+}
+sub wtimestamp_of_unix {
+# transforme une valeur de temps Unix en timestamp MediaWiki
+    my ($a,$m,$j,$h,$min,$s) = Localtime($_[0]);
+    $m = "0".$m if ( length($m) == 1 ); $j = "0".$j if ( length($j) == 1 ); $h = "0".$h if ( length($h) == 1 );
+    $min = "0".$min if ( length($min) == 1 ); $s = "0".$s if ( length($s) == 1 );
+    return $a."-".$m."-".$j."T".$h.":".$min.":".$s."Z";
+}
+sub jours_depuis {
+# calcule le nombre de jours écoulés entre aujourd’hui et le temps Unix donné
+    return int( (time() - $_[0]) / 365.25 );
 }
 
-sub getStatut_user {
-# renvoie le statut le plus élevé (dans la hiérarchie de LAURA) de l’utilisateur
-    
+sub estIP {
+# renvoie 1 si le pseudo est une IP, 0 sinon
+    if ( my ($un,$deux,$trois,$quatre) = ($_[0] =~ m/(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/) ) {
+	return 1 if ($un < 255 && $deux < 255 && $trois < 255 && $quatre < 255);
+	return 0;
+    }
+    return 0;
 }
+
+sub getUser_infos {
+# renvoie l’âge, le nombre d’éditions et le statut le plus important (dans la hiérarchie de LAURA) de l’utilisateur dont le nom est donné
+    my $rep = requeteAPI("action#=query#&list#=allusers#&auprop#=groups|editcount|registration#&aulimit#=1#&aufrom#=".$_[0]);
+    my ($editcount,$registration) = ($rep =~ m/\beditcount="(\d+)" registration="([^"]+)"/);
+    my $age = jours_depuis(wtimestamp_of_unix($registration));
+    if ( $rep =~ m/<groups>/ ) {
+	my @groupes = ( $rep =~ m#(?<=<g>)([^<]+)(?=</g>)#g );
+	my $statut;
+	if ( "developer" ~~ @groupes ) { $statut = "developer"; }
+	elsif ( "bureaucrat" ~~ @groupes ) {$statut = "bureaucrat"; }
+ 	elsif ( "sysop" ~~ @groupes ) {$statut = "sysop"; }
+	elsif ( "abusefilter" ~~ @groupes ) {$statut = "abusefilter"; }
+	elsif ( "autopatrol" ~~ @groupes ) {$statut = "autopatrol"; }
+	elsif ( "patroller" ~~ @groupes ) {$statut = "patroller"; }
+	else { $statut = "autre"; }
+    }
+    if (!defined($statut)) { my $statut = "*"; }
+}
+
+
