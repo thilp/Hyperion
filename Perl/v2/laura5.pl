@@ -75,9 +75,11 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 # LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
 # Format ?
 # (?<=\n)
-# NOM#:(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
-#        ip ?       () si pas ip                          scolaire ?
-#   (\*|user|autoconfirmed|bot|sysop|bureaucrat|patroller|autopatrol|developer|oversight|checkuser|abusefilter)[,…];
+# NOM#:not:NOTE_CONFIANCE;ect:EDITCOUNT;reg:REGISTRATION;sta:STATUT;iip:(0|1);aip:AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]];sco:(0|1);nav:NBRE_AVERTS;
+#                                        en wtimestamp                ip ?             rien si pas ip                       scolaire ?
+#   nbl:NBRE_BLOCAGES;nba:NBRE_BALISES;
+#
+#   (\*|bot|sysop|bureaucrat|patroller|autopatrol|developer|abusefilter)[,…];
 #               groupe majeur de l’utilisateur
 #   
 
@@ -124,6 +126,17 @@ sub getUser_infos {
     }
     if (!defined($statut)) { my $statut = "*"; }
     return ($age,$editcount,$statut);
+}
+
+sub majUser_infos {
+# met à jour le couple (nom:valeur) d’un utilisateur donné : majUser_infos(utilisateur,nom,valeur);
+    $bdd{$_[0]} =~ s/$_[1]:[^;]+/$_[1]:$_[2]/;
+    return 1;
+}
+
+sub nouvUser_infos {
+# crée le champ d’informations d’un nouvel utilisateur dont le nom est passé en argument
+    $bdd{$_[0]} = "";
 }
 
 sub ecritUser_infos {
