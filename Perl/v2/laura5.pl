@@ -90,13 +90,19 @@ my @balises = getListe_balises();
 
 sub calculNote_confiance_base {
     my ($scolaire,$statut,$age,$nbre_contribs,$nbre_averts,$nbre_balises,$nbre_blocages) = @_;
+    my $val_statut = 0;
+    $val_statut = 1 if ( $statut eq "patroller" );
+    $val_statut = 2 if ( $statut eq "autopatrol" );
+    $val_statut = 3 if ( $statut eq "sysop" or $statut eq "abusefilter" );
+    $val_statut = 4 if ( $statut eq "bureaucrat" );
+    $val_statut = 5 if ( $statut eq "developer" );
     return
-	($scolaire + 1)*( $val_statut + ($age + 2*$nbre_contribs)/(3*($nbre_averts**2+$nbre_balises+1)) )/2**$nbre_blocages;
+	(1/(1+$scolaire))*(1+$val_statut)*(2*log(1+$age)+5*($nbre_contribs-$nbre_balises**2))/(7*((1+$nbre_blocages)**2+$nbre_averts));
 }
 
 sub unix_of_wtimestamp {
 # transforme un timestamp MediaWiki en valeur de temps Unix
-    return Mktime($_[0] =~ m/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/);
+    return Mktime( $_[0] =~ m/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/ );
 }
 sub wtimestamp_of_unix {
 # transforme une valeur de temps Unix en timestamp MediaWiki
@@ -199,8 +205,14 @@ sub getNbre_averts {
     return scalar(@nbre);
 }
 
-my $nom = "";
-print Dumper(getUser_infos($nom));
-print(getNbre_balises($nom)."\n");
-print(getNbre_averts($nom)."\n");
-print(getNbre_blocages($nom)."\n");
+foreach $nom ("thilp","Ptyx","Astirmays","Adoni273","Haroldetcoco","Giratina","Altshift") {
+    print("\nPour $nom :\n");
+    print("Âge, nombre de modifications, groupe principal :\n");
+    print Dumper(getUser_infos($nom));
+    print("Balises déclenchées : ");
+    print(getNbre_balises($nom)."\n");
+    print("Avertissements reçus : ");
+    print(getNbre_averts($nom)."\n");
+    print("Blocages subis : ");
+    print(getNbre_blocages($nom)."\n");
+}
