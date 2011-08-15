@@ -124,7 +124,7 @@ sub getUser_infos {
     my $rep = requeteAPI("action#=query#&list#=allusers#&auprop#=groups|editcount|registration#&aulimit#=1#&aufrom#=".$_[0]);
     my ($editcount,$registration) = ($rep =~ m/\beditcount="(\d+)" registration="([^"]+)"/);
     my $age = jours_depuis(unix_of_wtimestamp($registration));
-    my $statut;
+    my $statut = "*";
     if ( $rep =~ m/<groups>/ ) {
 	my @groupes = ( $rep =~ m#(?<=<g>)[^<]+(?=</g>)#g );
 	if ( "developer" ~~ @groupes ) { $statut = "developer"; }
@@ -135,7 +135,6 @@ sub getUser_infos {
 	elsif ( "patroller" ~~ @groupes ) { $statut = "patroller"; }
 	else { $statut = "autre"; }
     }
-    if (!$statut) { my $statut = "*"; }
     return ($age,$editcount,$statut);
 }
 
@@ -200,4 +199,8 @@ sub getNbre_averts {
     return scalar(@nbre);
 }
 
-print Dumper(getUser_infos('thilp'));
+my $nom = "";
+print Dumper(getUser_infos($nom));
+print(getNbre_balises($nom)."\n");
+print(getNbre_averts($nom)."\n");
+print(getNbre_blocages($nom)."\n");
