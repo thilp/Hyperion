@@ -186,3 +186,10 @@ sub getNbre_balises {
     }
     return $compte;
 }
+
+sub getNbre_averts {
+# renvoie le nombre d’avertissements présents *actuellement* sur la page de discussion d’un utilisateur donné
+    my $texte = lectureArticle("Discussion utilisateur:".$_[0]);
+    my @nbre = ( $texte =~ m/\{\{averto-/g );
+    return scalar(@nbre);
+}
