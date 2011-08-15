@@ -88,6 +88,12 @@ my @balises = getListe_balises();
 #               groupe majeur de l’utilisateur
 #   
 
+sub calculNote_confiance_base {
+    my ($scolaire,$statut,$age,$nbre_contribs,$nbre_averts,$nbre_balises,$nbre_blocages) = @_;
+    return
+	($scolaire + 1)*( $val_statut + ($age + 2*$nbre_contribs)/(3*($nbre_averts**2+$nbre_balises+1)) )/2**$nbre_blocages;
+}
+
 sub unix_of_wtimestamp {
 # transforme un timestamp MediaWiki en valeur de temps Unix
     return Mktime($_[0] =~ m/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z/);
@@ -101,7 +107,7 @@ sub wtimestamp_of_unix {
 }
 sub jours_depuis {
 # calcule le nombre de jours écoulés entre aujourd’hui et le temps Unix donné
-    return int( (time() - $_[0]) / 365.25 );
+    return int( (time() - $_[0]) / 86400 );
 }
 
 sub estIP {
@@ -117,19 +123,19 @@ sub getUser_infos {
 # renvoie l’âge, le nombre d’éditions et le statut le plus important (dans la hiérarchie de LAURA) de l’utilisateur dont le nom est donné
     my $rep = requeteAPI("action#=query#&list#=allusers#&auprop#=groups|editcount|registration#&aulimit#=1#&aufrom#=".$_[0]);
     my ($editcount,$registration) = ($rep =~ m/\beditcount="(\d+)" registration="([^"]+)"/);
-    my $age = jours_depuis(wtimestamp_of_unix($registration));
+    my $age = jours_depuis(unix_of_wtimestamp($registration));
+    my $statut;
     if ( $rep =~ m/<groups>/ ) {
-	my @groupes = ( $rep =~ m#(?<=<g>)([^<]+)(?=</g>)#g );
-	my $statut;
+	my @groupes = ( $rep =~ m#(?<=<g>)[^<]+(?=</g>)#g );
 	if ( "developer" ~~ @groupes ) { $statut = "developer"; }
-	elsif ( "bureaucrat" ~~ @groupes ) {$statut = "bureaucrat"; }
- 	elsif ( "sysop" ~~ @groupes ) {$statut = "sysop"; }
-	elsif ( "abusefilter" ~~ @groupes ) {$statut = "abusefilter"; }
-	elsif ( "autopatrol" ~~ @groupes ) {$statut = "autopatrol"; }
-	elsif ( "patroller" ~~ @groupes ) {$statut = "patroller"; }
+	elsif ( "bureaucrat" ~~ @groupes ) { $statut = "bureaucrat"; }
+ 	elsif ( "sysop" ~~ @groupes ) { $statut = "sysop"; }
+	elsif ( "abusefilter" ~~ @groupes ) { $statut = "abusefilter"; }
+	elsif ( "autopatrol" ~~ @groupes ) { $statut = "autopatrol"; }
+	elsif ( "patroller" ~~ @groupes ) { $statut = "patroller"; }
 	else { $statut = "autre"; }
     }
-    if (!defined($statut)) { my $statut = "*"; }
+    if (!$statut) { my $statut = "*"; }
     return ($age,$editcount,$statut);
 }
 
@@ -193,3 +199,5 @@ sub getNbre_averts {
     my @nbre = ( $texte =~ m/\{\{averto-/g );
     return scalar(@nbre);
 }
+
+print Dumper(getUser_infos('thilp'));
