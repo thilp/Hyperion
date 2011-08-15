@@ -32,13 +32,18 @@ close(BDD);
 # FIN CHARGEMENT
 
 sub getMembres_d1_groupe {
-    # Récupère la liste des membres d’un groupe d’utilisateurs
+# Récupère la liste des membres d’un groupe d’utilisateurs
     return (requeteAPI('action#=query#&list#=allusers#&aulimit#=5000#&augroup#='.$_[0]) =~ m/\bname="([^"]+)"/g);
 }
-
 my @administrateurs = getMembres_d1_groupe("sysop");
 my @autopatrol = getMembres_d1_groupe("autopatrol");
 my @patrouilleurs = getMembres_d1_groupe("patroller");
+
+sub getListe_balises {
+# Récupère la liste des balises AbuseFilter
+    return (requeteAPI("action#=query#&list#=tags#&tglimit#=500") =~ m/\bname="([^"]+)"/g);
+}
+my @balises = getListe_balises();
 
 # LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
 #   plus ses modifications sont annulées ou retravaillées, moins elle a confiance en lui ;
