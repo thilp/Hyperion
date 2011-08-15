@@ -25,7 +25,7 @@ if (-e "lauraperl.dis") { open(BDD, "+<lauraperl.dis"); }
 else { open(BDD, "+>lauraperl.dis"); }
 my %bdd;
 while ( <BDD> ) {
-    my ($nom,$attr) = split(/:/,$_);
+    my ($nom,$attr) = split(/#:/,$_);
     $bdd{$nom} = chomp($attr);
 }
 close(BDD);
@@ -75,7 +75,7 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 # LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
 # Format ?
 # (?<=\n)
-# "NOM";(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
+# NOM#:(0|1);\(AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]]\);(0|1);
 #        ip ?       () si pas ip                          scolaire ?
 #   (\*|user|autoconfirmed|bot|sysop|bureaucrat|patroller|autopatrol|developer|oversight|checkuser|abusefilter)[,…];
 #               groupe majeur de l’utilisateur
@@ -138,6 +138,7 @@ sub majBDD {
 # met à jour la base de données sauvegardée : écrit le contenu de %bdd dans le fichier lauraperl.dis
     # copie de secours du fichier
     open(OP,"|cp lauraperl.dis lauraperl.dis.sauv"); close(OP);
+    # écriture
     open(BDD, ">lauraperl.dis");
     foreach $cle (keys(%bdd)) {
 	print( BDD $cle.":".$bdd{$cle}."\n" );
