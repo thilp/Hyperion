@@ -159,3 +159,15 @@ sub majBDD {
     close(BDD);
     return 1;
 }
+
+sub getNbre_blocages {
+# renvoie le nombre de blocages subis par un utilisateur
+# on compte le nombre de blocages subis (hormis les autoblocages) - le nombre de blocages annulés
+    # action=query&list=logevents&leaction=block/block&leprop=user&lelimit=500&letitle=Utilisateur:
+    my @countblocks =
+	( requeteAPI("action#=query#&list#=logevents#&leaction#=block/block#&leprop#=user#&lelimit#=500#&letitle#=Utilisateur:".$_[0]) =~ m/<item user="(?!$_[0]")/g );
+    my @countunblocks =
+	( requeteAPI("action#=query#&list#=logevents#&leaction#=block/unblock#&leprop#=user#&lelimit#=500#&letitle#=Utilisateur:".$_[0]) =~ m/<item user="(?!$_[0]")/g );
+    return (@countblocks - @countunblocks);
+}
+
