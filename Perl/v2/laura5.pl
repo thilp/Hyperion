@@ -176,3 +176,13 @@ sub getNbre_blocages {
     return (@countblocks - @countunblocks);
 }
 
+sub getNbre_balises {
+# renvoie le nombre de balises déclenchées par un utilisateur donné
+    my $compte = 0;
+    my @temp;
+    foreach $balise (@balises) {
+	@temp = ( requeteAPI("action#=query#&list#=usercontribs#&ucuser#=".$_[0]."#&uclimit#=5000#&ucprop#=#&uctag#=".$balise) =~ m/<item\b/g );
+	$compte += @temp;
+    }
+    return $compte;
+}
