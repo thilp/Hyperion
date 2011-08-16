@@ -23,6 +23,7 @@ require "edit.pl";
 # #############################################################################################################
 
 # CHARGEMENT DE LA BASE DE DONNÉES
+
 if (-e "lauraperl.dis") { open(BDD, "+<lauraperl.dis"); }
 else { open(BDD, "+>lauraperl.dis"); }
 my %bdd;
@@ -31,6 +32,7 @@ while ( <BDD> ) {
     $bdd{$nom} = chomp($attr);
 }
 close(BDD);
+
 # FIN CHARGEMENT
 
 # ################################################################################################################
@@ -135,7 +137,8 @@ sub getNbre_averts {
 
 sub getListe_autres_ips {
 # renvoie la liste des autres ips appartenant au même masque /24 que l’IP donnée et répertoriées dans %bdd.
-    my $masque = ( $_[0] =~ s/(?<=\.)\d{1,2}$// );
+    my $masque = $_[0];
+    $masque =~ s/(?<=\.)\d{1,2}$//;
     my @ips = ( grep { /^$masque/ } keys %bdd );
     for ( my $i=0; $i<@ips; $i++ ) {
 	delete $ips[$i] if ( $ips[$i] eq $_[0] );
@@ -173,16 +176,31 @@ sub majBDD {
 }
 sub nouvUser_infos {
 # crée le champ d’informations d’un nouvel utilisateur dont le nom est passé en argument
-    my ($age,$nbre_contribs,$statut,$registration) = getUser_infos($_[0]);
+    my ($age,$n_contribs,$statut,$registration) = getUser_infos($_[0]);
     my $ip = estIP($_[0]);
-    my $nbre_balises = getNbre_balises($_[0]);
-    my $nbre_averts = getNbre_averts($_[0]);
-    my $nbre_blocages = getNbre_blocages($_[0]);
+    my $n_balises = getNbre_balises($_[0]);
+    my $n_averts = getNbre_averts($_[0]);
+    my $n_blocages = getNbre_blocages($_[0]);
     my $scolaire = estScolaire($_[0]);
     if ( $ip ) { $ip .= ";aip:".getChaine_autres_ips($_[0]); }
-    my $note = calculNote_confiance_base($scolaire,$statut,$age,$nbre_contribs,$nbre_averts,$nbre_balises,$nbre_blocages);
-    $bdd{$_[0]} = "not:$note;edc:$nbre_contribs;reg:$registration;sta:$statut;iip:$ip;sco:$scolaire;nav:$nbre_averts;nbl:$nbre_blocages;nba:$nbre_balises;";
+    my $note = calculNote_confiance_base($scolaire,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages);
+    $bdd{$_[0]} = "not:$note;edc:$n_contribs;reg:$registration;sta:$statut;iip:$ip;sco:$scolaire;nav:$n_averts;nbl:$n_blocages;nba:$n_balises;";
     return 1;
+}
+sub litUser_infos {
+# récupère les informations concernant l’utilisateur donné et stockées dans la %bdd.
+    my $champ = $bdd{$_[0]};
+    my @tabAip;
+    if (
+	!( my ($note,$n_contribs,$registration,$statut,$ip,$scolaire,$n_averts,$n_blocages,$n_balises) =
+	($champ =~ m/not:(\d+);edc:(\d+);reg:([\dTZ:-]+);sta:([a-z*]+);iip:(0|1);(?:[^;]+;)?sco:(0|1);nav:(\d+);nbl:(\d+);nba:(\d+);/ ))
+	) { return 0; }
+    else  {
+	if ( $ip ) {
+	    @tabAip = split( /,/ , ($champ =~ m/\baip:([\d.,]+)/) );
+	}
+	return ($note,$n_contribs,$registration,$statut,$ip,\@tabAip,$scolaire,$n_averts,$n_blocages,$n_balises);
+    }
 }
 
 # FIN FONCTIONS D’INTERACTION AVEC LA BASE DE DONNÉES
@@ -194,27 +212,22 @@ my @patrouilleurs = getMembres_d1_groupe("patroller");
 my @balises = getListe_balises();
 
 sub calculNote_confiance_base {
-    my ($scolaire,$statut,$age,$nbre_contribs,$nbre_averts,$nbre_balises,$nbre_blocages) = @_;
+    my ($scolaire,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages) = @_;
     my $val_statut = 0;
     $val_statut = 1 if ( $statut eq "patroller" );
     $val_statut = 2 if ( $statut eq "autopatrol" );
     $val_statut = 3 if ( $statut eq "sysop" or $statut eq "abusefilter" );
     $val_statut = 4 if ( $statut eq "bureaucrat" );
-    $val_statut = 5 if ( $statut eq "developer" );
+    $val_statut = 8 if ( $statut eq "developer" );
     return
-	(1/(1+$scolaire))*(1+$val_statut)*(2*log(1+$age)+5*($nbre_contribs-$nbre_balises**2))/(7*((1+$nbre_blocages)**2+$nbre_averts));
+	int((1/(1+$scolaire))*(1+$val_statut)*(2*log(1+$age)+5*($n_contribs-$n_balises**2))/(7*((1+$n_blocages)**2+$n_averts)));
 }
 
-foreach $nom ("thilp","Ptyx","Astirmays","Adoni273","Haroldetcoco","Giratina","Altshift") {
-    print("\nPour $nom :\n");
-    print("Âge, nombre de modifications, groupe principal :\n");
-    print Dumper(getUser_infos($nom));
-    print("Balises déclenchées : ");
-    print(getNbre_balises($nom)."\n");
-    print("Avertissements reçus : ");
-    print(getNbre_averts($nom)."\n");
-    print("Blocages subis : ");
-    print(getNbre_blocages($nom)."\n");
+foreach $nom ("thilp","Ptyx","Astirmays","Macassar","Adoni273","Haroldetcoco","Giratina","Altshift","Alcyon","217.167.123.107","Plyd") {
+    print("\nRécupération des informations pour $nom…\n");
+    nouvUser_infos($nom);
+    print("Affichage :\n  Note, contribs, inscription, statut, estIP, refIPs, estScolaire, averts, blocages, balises :\n");
+    print Dumper(litUser_infos($nom));
 }
 
 # LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :

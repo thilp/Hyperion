@@ -45,7 +45,8 @@ sub requeteAPI {
 
 sub lectureArticle {
   my ($retour) = (requeteAPI('action#=query#&prop#=revisions#&rvprop#=content#&titles#='.$_[0]) =~ m/<rev xml:space="preserve">(.*)<\/rev>/s);
-  return decode_entities($retour);
+  return decode_entities($retour) if (defined($retour));
+  return "";
 }
 
 sub connexion {
