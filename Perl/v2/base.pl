@@ -60,11 +60,11 @@ sub connexion {
   return $result eq 'Success';
 }
 
-my $pass = <STDIN>;
-my ($pseudo,$mdp,$retour) = ("LAURA",$pass);
 if (-e "cookies.txt"){
   print "Usage du cookie déjà présent.\n";
 } else {
+  my $pass = <STDIN>;
+  my ($pseudo,$mdp,$retour) = ("LAURA",chomp($pass));
   if(connexion($pseudo,$mdp,\$retour) ){
     print "Connecté en tant que $pseudo !\n";
   }
