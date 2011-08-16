@@ -18,14 +18,22 @@
 
 use Data::Dumper;
 use Date::Calc qw(Mktime Localtime);
+use Math::Trig qw(atan tanh);
 require "edit.pl";
+
+
+#my @administrateurs = getMembres_d1_groupe("sysop");
+#my @autopatrol = getMembres_d1_groupe("autopatrol");
+#my @patrouilleurs = getMembres_d1_groupe("patroller");
+my @balises = getListe_balises();
+
 
 # #############################################################################################################
 
 # CHARGEMENT DE LA BASE DE DONNÉES
 
-if (-e "lauraperl.dis") { open(BDD, "+<lauraperl.dis"); }
-else { open(BDD, "+>lauraperl.dis"); }
+if (-e "lauraperl.dis") { open(BDD, "+>lauraperl.dis"); }
+else { open(BDD, ">lauraperl.dis"); }
 my %bdd;
 while ( <BDD> ) {
     my ($nom,$attr) = split(/#:/,$_);
@@ -117,7 +125,7 @@ sub getNbre_balises {
     my $compte = 0;
     my @temp;
     foreach $balise (@balises) {
-	@temp = ( requeteAPI("action#=query#&list#=usercontribs#&ucuser#=".$_[0]."#&uclimit#=5000#&ucprop#=#&uctag#=".$balise) =~ m/<item\b/g );
+	@temp = ( requeteAPI("action#=query#&list#=usercontribs#&ucuser#=$_[0]#&uclimit#=5000#&ucprop#=#&uctag#=$balise") =~ m/<item\b/g );
 	$compte += @temp;
     }
     return $compte;
@@ -169,7 +177,7 @@ sub majBDD {
     # écriture
     open(BDD, ">lauraperl.dis");
     foreach $cle (keys(%bdd)) {
-	print( BDD $cle.":".$bdd{$cle}."\n" );
+	print( BDD $cle."#:".$bdd{$cle}."\n" );
     }
     close(BDD);
     return 1;
@@ -182,9 +190,10 @@ sub nouvUser_infos {
     my $n_averts = getNbre_averts($_[0]);
     my $n_blocages = getNbre_blocages($_[0]);
     my $scolaire = estScolaire($_[0]);
-    if ( $ip ) { $ip .= ";aip:".getChaine_autres_ips($_[0]); }
-    my $note = calculNote_confiance_base($scolaire,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages);
-    $bdd{$_[0]} = "not:$note;edc:$n_contribs;reg:$registration;sta:$statut;iip:$ip;sco:$scolaire;nav:$n_averts;nbl:$n_blocages;nba:$n_balises;";
+    my $note = calculNote_confiance_base($scolaire,$ip,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages);
+    my $aip = "";
+    if ( $ip ) { $aip = getChaine_autres_ips($_[0]); }
+    $bdd{$_[0]} = "not:$note;edc:$n_contribs;reg:$registration;sta:$statut;iip:$ip;aip:$aip;sco:$scolaire;nav:$n_averts;nbl:$n_blocages;nba:$n_balises;";
     return 1;
 }
 sub litUser_infos {
@@ -193,11 +202,11 @@ sub litUser_infos {
     my @tabAip;
     if (
 	!( my ($note,$n_contribs,$registration,$statut,$ip,$scolaire,$n_averts,$n_blocages,$n_balises) =
-	($champ =~ m/not:(\d+);edc:(\d+);reg:([\dTZ:-]+);sta:([a-z*]+);iip:(0|1);(?:[^;]+;)?sco:(0|1);nav:(\d+);nbl:(\d+);nba:(\d+);/ ))
+	($champ =~ m/not:(\d+);edc:(\d+);reg:([\dTZ:-]+);sta:([a-z*]+);iip:(0|1);aip:[^;]*;sco:(0|1);nav:(\d+);nbl:(\d+);nba:(\d+);/ ))
 	) { return 0; }
     else  {
 	if ( $ip ) {
-	    @tabAip = split( /,/ , ($champ =~ m/\baip:([\d.,]+)/) );
+	    @tabAip = split( /,/ , ($champ =~ m/\baip:([^;]*)/) );
 	}
 	return ($note,$n_contribs,$registration,$statut,$ip,\@tabAip,$scolaire,$n_averts,$n_blocages,$n_balises);
     }
@@ -206,29 +215,27 @@ sub litUser_infos {
 # FIN FONCTIONS D’INTERACTION AVEC LA BASE DE DONNÉES
 
 # ################################################################################################################
-my @administrateurs = getMembres_d1_groupe("sysop");
-my @autopatrol = getMembres_d1_groupe("autopatrol");
-my @patrouilleurs = getMembres_d1_groupe("patroller");
-my @balises = getListe_balises();
+
 
 sub calculNote_confiance_base {
-    my ($scolaire,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages) = @_;
+    my ($scolaire,$ip,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages) = @_;
     my $val_statut = 0;
     $val_statut = 1 if ( $statut eq "patroller" );
     $val_statut = 2 if ( $statut eq "autopatrol" );
     $val_statut = 3 if ( $statut eq "sysop" or $statut eq "abusefilter" );
     $val_statut = 4 if ( $statut eq "bureaucrat" );
-    $val_statut = 8 if ( $statut eq "developer" );
-    return
-	int((1/(1+$scolaire))*(1+$val_statut)*(2*log(1+$age)+5*($n_contribs-$n_balises**2))/(7*((1+$n_blocages)**2+$n_averts)));
+    $val_statut = 5 if ( $statut eq "developer" );
+    return int(10*(1/(1+$ip+$scolaire))*(1+$val_statut)*(1.5*atan(sqrt($age/7))*(tanh($age-3)+1))*($n_contribs-$n_balises**2)/(1+$n_contribs*((1+$n_blocages)**2+$n_averts)));
 }
 
-foreach $nom ("thilp","Ptyx","Astirmays","Macassar","Adoni273","Haroldetcoco","Giratina","Altshift","Alcyon","217.167.123.107","Plyd") {
+foreach $nom ("217.167.123.107","thilp","Ptyx","Astirmays","Macassar","Adoni273","Haroldetcoco","Giratina","Altshift","Plyd","Pier-luc11","Julien, Minh Ahn") {
     print("\nRécupération des informations pour $nom…\n");
     nouvUser_infos($nom);
     print("Affichage :\n  Note, contribs, inscription, statut, estIP, refIPs, estScolaire, averts, blocages, balises :\n");
     print Dumper(litUser_infos($nom));
 }
+majBDD();
+
 
 # LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
 #   plus ses modifications sont annulées ou retravaillées, moins elle a confiance en lui ;
