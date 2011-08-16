@@ -229,12 +229,12 @@ sub calculNote_confiance_base {
 }
 
 foreach $nom ("217.167.123.107","thilp","Ptyx","Astirmays","Macassar","Adoni273","Haroldetcoco","Giratina","Altshift","Plyd","Pier-luc11","Julien, Minh Ahn") {
-    print("\nRécupération des informations pour $nom…\n");
-    nouvUser_infos($nom);
+    #print("\nRécupération des informations pour $nom…\n");
+    #nouvUser_infos($nom);
     print("Affichage :\n  Note, contribs, inscription, statut, estIP, refIPs, estScolaire, averts, blocages, balises :\n");
     print Dumper(litUser_infos($nom));
 }
-majBDD();
+#majBDD();
 
 
 # LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
