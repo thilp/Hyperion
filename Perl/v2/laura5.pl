@@ -80,7 +80,7 @@ my @balises = getListe_balises();
 # LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
 # Format ?
 # (?<=\n)
-# NOM#:not:NOTE_CONFIANCE;ect:EDITCOUNT;reg:REGISTRATION;sta:STATUT;iip:(0|1);aip:AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]];sco:(0|1);nav:NBRE_AVERTS;
+# NOM#:not:NOTE_CONFIANCE;edc:EDITCOUNT;reg:REGISTRATION;sta:STATUT;iip:(0|1);aip:AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]];sco:(0|1);nav:NBRE_AVERTS;
 #                                        en wtimestamp                ip ?             rien si pas ip                       scolaire ?
 #   nbl:NBRE_BLOCAGES;nba:NBRE_BALISES;
 #
@@ -125,6 +125,29 @@ sub estIP {
     return 0;
 }
 
+sub estScolaire {
+# renvoie 1 si la page de discussion du compte d’utilisateur mentionne qu’il est utilisé dans un cadre scolaire, 0 sinon,
+    if ( lectureArticle("Discussion utilisateur:".$_[0]) =~ m/\{\{ip scolaire\|/i ) {
+	return 1;
+    }
+    return 0;
+}
+
+sub getListe_autres_ips {
+# renvoie la liste des autres ips appartenant au même masque /24 que l’IP donnée et répertoriées dans %bdd.
+    my $masque = ( $_[0] =~ s/(?<=\.)\d{1,2}$// );
+    my @ips = ( grep { /^$masque/ } keys %bdd );
+    for ( my $i=0; $i<@ips; $i++ ) {
+	delete $ips[$i] if ( $ips[$i] eq $_[0] );
+    }
+    return @ips;
+}
+
+sub getChaine_autres_ips {
+# renvoie le résultat de getAutres_ips() sous forme de chaîne de caractères.
+    return join(",",getListe_autres_ips($_[0]));
+}
+
 sub getUser_infos {
 # renvoie l’âge, le nombre d’éditions et le statut le plus important (dans la hiérarchie de LAURA) de l’utilisateur dont le nom est donné
     my $rep = requeteAPI("action#=query#&list#=allusers#&auprop#=groups|editcount|registration#&aulimit#=1#&aufrom#=".$_[0]);
@@ -141,7 +164,7 @@ sub getUser_infos {
 	elsif ( "patroller" ~~ @groupes ) { $statut = "patroller"; }
 	else { $statut = "autre"; }
     }
-    return ($age,$editcount,$statut);
+    return ($age,$editcount,$statut,$registration);
 }
 
 sub majUser_infos {
@@ -152,7 +175,16 @@ sub majUser_infos {
 
 sub nouvUser_infos {
 # crée le champ d’informations d’un nouvel utilisateur dont le nom est passé en argument
-    $bdd{$_[0]} = "";
+    my ($age,$nbre_contribs,$statut,$registration) = getUser_infos($_[0]);
+    my $ip = estIP($_[0]);
+    my $nbre_balises = getNbre_balises($_[0]);
+    my $nbre_averts = getNbre_averts($_[0]);
+    my $nbre_blocages = getNbre_blocages($_[0]);
+    my $scolaire = estScolaire($_[0]);
+    if ( $ip ) { $ip .= ";aip:".getAutres_ips($_[0]); }
+    my $note = calculNote_confiance_base($scolaire,$statut,$age,$nbre_contribs,$nbre_averts,$nbre_balises,$nbre_blocages);
+    $bdd{$_[0]} = "not:$note;edc:$nbre_contribs;reg:$registration;sta:$statut;iip:$ip;sco:$scolaire;nav:$nbre_averts;nbl:$nbre_blocages;nba:$nbre_balises;";
+    return 1;
 }
 
 sub ecritUser_infos {
