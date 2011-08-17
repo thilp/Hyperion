@@ -130,6 +130,13 @@ sub getNbre_averts {
     return scalar(@nbre);
 }
 
+sub getRCs {
+# renvoie le tableau des modifications survenues depuis le timestamp AAAAMMJJhhmmss passé en argument, ou les 5000 dernières si pas d’argument.
+    # action=query&list=recentchanges&rcexcludeuser=Alcyon&rcprop=user|comment|timestamp|ids|sizes|loginfo|tags&rclimit=5000&rcend=
+    my $timestamp = $_[0];
+    if( defined($timestamp) ) { $timestamp = "#&rcend#=".
+}
+
 # FIN FONCTIONS DE RÉCUPÉRATION DEPUIS L’API
 
 # ################################################################################################################
@@ -234,31 +241,3 @@ sub calculNote_confiance_base {
 #     tandis qu’un simple utilisateur modifiant le travail d’un administrateur perd lui-même de la confiance. Ce mécanisme s’applique plus généralement
 #     en fonction de la note de confiance, et non du statut de l’utilisateur, bien que la première soit aussi liée au second.
 #   Il ne faut pas sauvegarder les diffs ni les informations associées en local : trop encombrant. Charger deux diffs quand nécessaire.
-#
-# La confiance de LAURA augmentant systématiquement en fonction de l’âge de l’utilisateur sur Vikidia, la formule de notation doit prendre linéairement
-#   en compte ce paramètre. Il est modéré par le nombre d’avertissements reçus et évolue en fonction des statuts de l’utilisateur.
-#   Enfin, une partie de la note reste constamment variable pour les ajustements ad hoc de LAURA, qui dépendent seulement des modifications.
-# Exemple : c_{totale} = \frac{1}{n_{semblables}}\times\sum_{semblables}\left((b_{scolaire}+1)\times\frac{c_{statut}+\frac{t_{age}+2n_{contribs}}{3(n_{averts}^2+n_{balises}+1)}}{2^{n_{blocages}}}\right)+c_{instant}
-#   (où l’indice « semblables » représente, dans le cas d’une adresse IP, toutes les adresses connues de son masque /24 ;
-#     dans le cas d’un utilisateur, cela n’a pas de signification et on le simplifie par le cas d’une adresse IP « seule parmi son masque » ;
-#     et où b_{scolaire} représente la variable binaire valant 1 si la PdD comporte {{ip scolaire}}, 0 sinon)
-#
-# Pour calculer cette note de confiance, il est nécessaire de disposer des informations suivantes :
-#  * IP connues du même masque /24 (d’où leur nombre et leur note, d’où la moyenne de leur note) ;
-#  * compte utilisé par des scolaires ;
-#  * statut de l’utilisateur ;
-#  * âge de l’utilisateur sur Vikidia ;
-#  * nombre de modifications effectuées ;
-#  * nombre d’avertissements reçus ;
-#  * nombre de balises déclenchées ;
-#  * nombre de blocages subis.
-#
-# LAURA doit donc disposer d’un fichier listant ces informations. Elles les complète elle-même quand un changement survient et récupère les autres via l’API.
-# Format ?
-# (?<=\n)
-# NOM#:not:NOTE_CONFIANCE;edc:EDITCOUNT;reg:REGISTRATION;sta:STATUT;iip:(0|1);aip:AUTRE_IP_CONNUE_1[,AUTRE_IP_CONNUE_2[,…]];sco:(0|1);nav:NBRE_AVERTS;
-#                                        en wtimestamp                ip ?             rien si pas ip                       scolaire ?
-#   nbl:NBRE_BLOCAGES;nba:NBRE_BALISES;
-#
-#   (\*|bot|sysop|bureaucrat|patroller|autopatrol|developer|abusefilter)[,…];
-#               groupe majeur de l’utilisateur
