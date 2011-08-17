@@ -221,15 +221,6 @@ sub calculNote_confiance_base {
     return int(10*(1/(1+$ip+$scolaire))*(1+$val_statut)*(1.5*atan(sqrt($age/7))*(tanh($age-3)+1))*($n_contribs-$n_balises**2)/(1+$n_contribs*((1+$n_blocages)**2+$n_averts)));
 }
 
-foreach $nom ("217.167.123.107","thilp","Ptyx","Astirmays","Macassar","Adoni273","Haroldetcoco","Giratina","Altshift","Plyd","Pier-luc11","Julien, Minh Ahn") {
-    #print("\nRécupération des informations pour $nom…\n");
-    #nouvUser_infos($nom);
-    print("Affichage :\n  Note, contribs, inscription, statut, estIP, refIPs, estScolaire, averts, blocages, balises :\n");
-    print Dumper(litUser_infos($nom));
-}
-#majBDD();
-
-
 # LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
 #   plus ses modifications sont annulées ou retravaillées, moins elle a confiance en lui ;
 #   inversement, plus il contribue sans être repris ou averti, plus la confiance que LAURA lui porte croît.
