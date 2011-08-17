@@ -9,37 +9,30 @@
 #   de cet encadré.                                 !
 # --------------------------------------------------'
 
-# Cette cinquième version assimile les importants changements dus à l’adoption d’AbuseFilter sur Vikidia.
-# AbuseFilter filtre les contenus et agit, en ce qui concerne LAURA, par l’affichage de balises. Il faut
-#  récupérer ces balises pour en tirer des informations et ne pas appliquer un filtrage redondant avec
-#  celui d’AbuseFilter. C’est l’occasion de se concentrer sur le déroulé temporel (basiquement géré par
-#  AbuseFilter) et le suivi des utilisateurs (non géré), ainsi que les interactions des utilisateurs
-#  avec les patrouilleurs et les administrateurs.
-
 use Data::Dumper;
 use Date::Calc qw(Mktime Localtime);
 use Math::Trig qw(atan tanh);
 require "edit.pl";
-
 
 #my @administrateurs = getMembres_d1_groupe("sysop");
 #my @autopatrol = getMembres_d1_groupe("autopatrol");
 #my @patrouilleurs = getMembres_d1_groupe("patroller");
 my @balises = getListe_balises();
 
-
 # #############################################################################################################
 
 # CHARGEMENT DE LA BASE DE DONNÉES
 
-if (-e "lauraperl.dis") { open(BDD, "+>lauraperl.dis"); }
-else { open(BDD, ">lauraperl.dis"); }
 my %bdd;
-while ( <BDD> ) {
-    my ($nom,$attr) = split(/#:/,$_);
-    $bdd{$nom} = chomp($attr);
+if (-e "lauraperl.dis") {
+    open(BDD, "<lauraperl.dis");
+    while ( <BDD> ) {
+	chomp;
+	my ($nom,$attr) = split(/#:/);
+	$bdd{$nom} = $attr;
+    }
+    close(BDD);
 }
-close(BDD);
 
 # FIN CHARGEMENT
 
@@ -173,7 +166,7 @@ sub rechercheUser_infos {
 sub majBDD {
 # met à jour la base de données sauvegardée : écrit le contenu de %bdd dans le fichier lauraperl.dis
     # copie de secours du fichier
-    open(OP,"|cp lauraperl.dis lauraperl.dis.sauv"); close(OP);
+    open(OP,"|cp -f lauraperl.dis lauraperl.dis.sauv"); close(OP);
     # écriture
     open(BDD, ">lauraperl.dis");
     foreach $cle (keys(%bdd)) {
