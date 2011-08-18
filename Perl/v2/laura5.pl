@@ -132,10 +132,15 @@ sub getNbre_averts {
 
 sub getRCs {
 # renvoie le tableau des modifications survenues depuis le timestamp AAAAMMJJhhmmss passé en argument, ou les 5000 dernières si pas d’argument.
-    # action=query&list=recentchanges&rcexcludeuser=Alcyon&rcprop=user|comment|timestamp|ids|sizes|loginfo|tags&rclimit=5000&rcend=
     my $timestamp = $_[0];
-    if( defined($timestamp) ) { $timestamp = "#&rcend#=".
+    if ( defined($timestamp) ) { $timestamp = "#&rcend#=".$timestamp; }
+    else { $timestamp = ""; }
+    my @tabRequetes =
+	(requeteAPI("action#=query#&list#=recentchanges#&rcexcludeuser#=Alcyon#&rcprop#=user|comment|timestamp|ids|sizes|loginfo|tags#&rclimit#=5000".$timestamp) =~ m#(?<=<rc ).*?(?=</rc>)#g);
+    return @tabRequetes;
 }
+
+
 
 # FIN FONCTIONS DE RÉCUPÉRATION DEPUIS L’API
 
