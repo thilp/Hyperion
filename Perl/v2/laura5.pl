@@ -9,6 +9,20 @@
 #   de cet encadré.                                 !
 # --------------------------------------------------'
 
+# LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
+#   plus ses modifications sont annulées ou retravaillées, moins elle a confiance en lui ;
+#   inversement, plus il contribue sans être repris ou averti, plus la confiance que LAURA lui porte croît.
+# Il faut donc un fichier/base de données présentant : le nom d’utilisateur et la note de confiance de LAURA.
+#
+# À chaque modification d’une page, LAURA doit vérifier si les changements annulent ou retravaillent beaucoup ceux de l’auteur précédent.
+#   Pour cela, charger le diff de la nouvelle version par rapport à l’ancienne puis de l’ancienne par rapport à celle d’encore avant
+#     (action=query&prop=revisions&revids=X&rvprop=&rvdiffto=prev) ;
+#   Comparer les changements. Si des lignes ajoutées ont été retirées ou très changées, modifier la confiance de LAURA envers les contributeurs
+#     en fonction de leur confiance précédente : un patrouilleur corrigeant le travail d’une IP diminue la confiance de LAURA dans celle-ci,
+#     tandis qu’un simple utilisateur modifiant le travail d’un administrateur perd lui-même de la confiance. Ce mécanisme s’applique plus généralement
+#     en fonction de la note de confiance, et non du statut de l’utilisateur, bien que la première soit aussi liée au second.
+#   Il ne faut pas sauvegarder les diffs ni les informations associées en local : trop encombrant. Charger deux diffs quand nécessaire.
+
 use Data::Dumper;
 use Date::Calc qw(Mktime Localtime);
 use Math::Trig qw(atan tanh);
@@ -129,18 +143,15 @@ sub getNbre_averts {
     my @nbre = ( $texte =~ m/\{\{averto-/g );
     return scalar(@nbre);
 }
-
 sub getRCs {
 # renvoie le tableau des modifications survenues depuis le timestamp AAAAMMJJhhmmss passé en argument, ou les 5000 dernières si pas d’argument.
     my $timestamp = $_[0];
     if ( defined($timestamp) ) { $timestamp = "#&rcend#=".$timestamp; }
     else { $timestamp = ""; }
-    my @tabRequetes =
+    my @tabRCs =
 	(requeteAPI("action#=query#&list#=recentchanges#&rcexcludeuser#=Alcyon#&rcprop#=user|comment|timestamp|ids|sizes|loginfo|tags#&rclimit#=5000".$timestamp) =~ m#(?<=<rc ).*?(?=</rc>)#g);
-    return @tabRequetes;
+    return @tabRCs;
 }
-
-
 
 # FIN FONCTIONS DE RÉCUPÉRATION DEPUIS L’API
 
@@ -223,6 +234,7 @@ sub litUser_infos {
 
 
 sub calculNote_confiance_base {
+# Renvoie le degré fondamental de confiance accordé par Alcyon à un contributeur selon les paramètres passés en argument.
     my ($scolaire,$ip,$statut,$age,$n_contribs,$n_averts,$n_balises,$n_blocages) = @_;
     my $val_statut = 0;
     $val_statut = 1 if ( $statut eq "patroller" );
@@ -233,16 +245,24 @@ sub calculNote_confiance_base {
     return int(10*(1/(1+$ip+$scolaire))*(1+$val_statut)*(1.5*atan(sqrt($age/7))*(tanh($age-3)+1))*($n_contribs-$n_balises**2)/(1+$n_contribs*((1+$n_blocages)**2+$n_averts)));
 }
 
-# LAURA doit suivre l’évolution de chaque contributeur en fonction de ses contributions :
-#   plus ses modifications sont annulées ou retravaillées, moins elle a confiance en lui ;
-#   inversement, plus il contribue sans être repris ou averti, plus la confiance que LAURA lui porte croît.
-# Il faut donc un fichier/base de données présentant : le nom d’utilisateur et la note de confiance de LAURA.
-#
-# À chaque modification d’une page, LAURA doit vérifier si les changements annulent ou retravaillent beaucoup ceux de l’auteur précédent.
-#   Pour cela, charger le diff de la nouvelle version par rapport à l’ancienne puis de l’ancienne par rapport à celle d’encore avant
-#     (action=query&prop=revisions&revids=X&rvprop=&rvdiffto=prev) ;
-#   Comparer les changements. Si des lignes ajoutées ont été retirées ou très changées, modifier la confiance de LAURA envers les contributeurs
-#     en fonction de leur confiance précédente : un patrouilleur corrigeant le travail d’une IP diminue la confiance de LAURA dans celle-ci,
-#     tandis qu’un simple utilisateur modifiant le travail d’un administrateur perd lui-même de la confiance. Ce mécanisme s’applique plus généralement
-#     en fonction de la note de confiance, et non du statut de l’utilisateur, bien que la première soit aussi liée au second.
-#   Il ne faut pas sauvegarder les diffs ni les informations associées en local : trop encombrant. Charger deux diffs quand nécessaire.
+# type="edit" rcid="390258" pageid="63778" revid="382448" old_revid="382443" user="Adoni273" oldlen="1262" newlen="1583" timestamp="2011-08-18T12:48:52Z" comment=""><tags />
+
+# type="new" rcid="390257" pageid="63781" revid="382447" old_revid="0" user="Adoni273" oldlen="0" newlen="995" timestamp="2011-08-18T12:48:21Z" comment="Création : *Un &#039;&#039;&#039;satellite&#039;&#039;&#039; désigne un objet en [[orbite]] autour d&#039;un autre : **quand il n&#039;est pas d&#039;origine humaine, c&#039;est un [[satellite|&#039;&#039;&#039;satellite&#039;&#039;&#039; naturel]] (domaine de l&#039;[[astronomie]..."><tags />
+
+# type="log" rcid="390249" pageid="63779" revid="0" old_revid="0" user="Adoni273" oldlen="0" newlen="0" timestamp="2011-08-18T10:57:19Z" comment="nom au pluriel " logid="242704" logtype="move" logaction="move"><move new_ns="102" new_title="Portail:Satellites naturels" /><tags />
+
+sub analyseRCs {
+    foreach (@_) {
+	my ($type) = ( $_ =~ m/^type="(edit|new|log)/ );
+	my ($user) = ( $_ =~ m/user="([^"]+)/ );
+	if ( $type eq "edit" ) {
+	    # my ($pageid,$revid,$old_revid)
+	}
+	elsif ( $type eq "new" ) {
+
+	}
+	else {
+
+	}
+    }
+}
