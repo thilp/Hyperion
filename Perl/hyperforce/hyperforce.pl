@@ -18,25 +18,6 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use HTML::Entities;
 
-# action=login (lg) *
-#   Log in and get the authentication tokens.
-#   In the event of a successful log-in, a cookie will be attached
-#   to your session. In the event of a failed log-in, you will not
-#   be able to attempt another log-in through this method for 5 seconds.
-#   This is to prevent password guessing by automated password crackers
-#
-# This module only accepts POST requests
-# Parameters:
-#   lgname              - User Name
-#   lgpassword          - Password
-#   lgdomain            - Domain (optional)
-#   lgtoken             - Login token obtained in first request
-# Example:
-#   api.php?action=login&lgname=user&lgpassword=password
-# Help page:
-#   https://www.mediawiki.org/wiki/API:Login
-
-
 # GLOBAL
   my $ua = LWP::UserAgent->new(
     agent => 'Hyperion/5.0.perl (thilp/bot/lol)',
