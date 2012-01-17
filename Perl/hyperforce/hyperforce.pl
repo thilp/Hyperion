@@ -45,7 +45,7 @@ sub requeteAPI
     Content_Type => 'application/x-www-form-urlencoded',
     Content => \%params
    );
-  die $rep->status_line unless $rep->is_success;
+  return $rep->status_line unless $rep->is_success;
   return $rep->content;
 }
 
@@ -71,7 +71,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (3,0);
+my @struct = (2,0,0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
