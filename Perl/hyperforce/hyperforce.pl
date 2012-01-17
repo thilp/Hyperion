@@ -16,7 +16,6 @@
 use strict;
 use LWP::UserAgent;
 use HTTP::Cookies;
-use HTML::Entities;
 
 # GLOBAL
   my $ua = LWP::UserAgent->new(
@@ -71,8 +70,6 @@ sub connexion
 
 # PASSWORD GENERATION
 
-# $pwd is the password to check
-my $pwd = "";
 # @struct describes the password structure
 my @struct = (0);
 # @table contains all the strings that can be assembled to generate $pwd
