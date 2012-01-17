@@ -78,9 +78,10 @@ my @struct = (0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
-  'bonjour','salut','passe','motdepasse','azerty', 'lol',
+  'bonjour','salut','pass','motdepasse','azerty', 'vikidia',
+  'viki','wiki','lol',
   # SERIES
-  '123456789','123456','123456789','6789','9876','987654321','02357',
+  '123456789','123456','6789','9876','987654321','02357',
   '2468','1357',
   # NUMBERS
   '0','1','2','3','4','5','6','7','8','9',
