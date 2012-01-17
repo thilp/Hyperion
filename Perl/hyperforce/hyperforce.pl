@@ -71,7 +71,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (0);
+my @struct = (3,0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
@@ -143,7 +143,7 @@ if (@ARGV == 1)
     my $pass = generate_pwd(\@struct);
     print "Trying with $pass... ";
     $ret = connexion($ARGV[0], $pass, \$result);
-    print "don't match: $result.\n" if ($ret == 0);
+    print "doesn't match: $result.\n" if ($ret == 0);
   }
   print "PASSWORD FOUND!\n";
 }
