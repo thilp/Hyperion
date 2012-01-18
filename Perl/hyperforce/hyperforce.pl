@@ -70,7 +70,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (145,145,145);
+my @struct = (2,145,145);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
@@ -123,10 +123,9 @@ sub generate_pwd
   {
     foreach (@$ref_struct)
     {
-      print '$table['.$_.'] = '.$table[$_]."\n";
       $ret .= $table[$_];
     }
-    $$ref_struct[-$rank]++;
+    $$ref_struct[-1]++;
     return $ret;
   }
 }
