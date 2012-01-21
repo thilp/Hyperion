@@ -23,7 +23,7 @@ use HTML::Entities;
     )
   );
   $ua->timeout(10);
-  $ua->from('*******@*********');
+  $ua->from('thilp.is@gmail.com');
 # END GLOBAL
 
 sub requeteAPI
@@ -31,13 +31,25 @@ sub requeteAPI
   my @params = split(/#&/, $_[0]);
   my %params = ('format' => 'xml');
 
+  my $api = 'http://fr.vikidia.org/w/api.php';
+  my $prefix = $_[1];
+
+  $api = 'http://wikikids.wiki.kennisnet.nl/api.php' if ($prefix eq 'nl');
+  $api = 'http://es.vikidia.org/w/api.php' if ($prefix eq 'es');
+  $api = 'http://simple.wikipedia.org/w/api.php' if ($prefix eq 'en');
+  $api = 'http://grundschulwiki.zum.de/api.php' if ($prefix eq 'de');
+  if ($prefix =~ /^wp_(\w\w)$/)
+  {
+    $api = 'http://'.$1.'.wikipedia.org/w/api.php';
+  }
+
   foreach my $champ (@params)
   {
     my ($attr,$val) = split(/#=/, $champ);
     $params{$attr} = $val;
   }
   my $rep = $ua->post(
-    'http://fr.vikidia.org/w/api.php',
+    $api,
     Content_Type => 'application/x-www-form-urlencoded',
     Content => \%params
    );
@@ -48,7 +60,7 @@ sub requeteAPI
 sub lectureArticle
 {
   my ($retour) = (requeteAPI('action#=query#&prop#=revisions#&rvprop#=content'.
-    '#&titles#='.$_[0]) =~ /<rev xml:space="preserve">(.*)<\/rev>/s);
+    '#&titles#='.$_[0], $_[1]) =~ /<rev xml:space="preserve">(.*)<\/rev>/s);
   return decode_entities($retour) if (defined($retour));
   return "";
 }
