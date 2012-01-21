@@ -86,13 +86,23 @@ function page_existe_wp($titre,&$redirection=false,&$page_redirect='',$wp_prefix
   }
   return $pe;
 }
-function resolution_existence_page_et_redirection($titre,$prefixe='fr',&$redirection=false,&$page_redirect=''){
-  // Teste l’existence d’une page $titre sur le wiki correspondant à $prefixe ; traite les problèmes de redirection.
-  $retour = requeteAPI('action=query&prop=revisions&titles='.urlencode($titre).'&rvprop=content&format=xml',$prefixe);
-  $existence = strpos($retour,' missing="" /></pages>')===false;
-  if($existence){
-    $redirection = preg_match('/#(?:REDIRECT(?:ION)?|DOORVERWIJZING|REDIRECCIÓN)\s*\[\[([^\]]+)\]\]/',$retour,$tab)==1;
-    if($redirection){ $page_redirect = $tab[1]; }
+
+// Teste l’existence d’une page $titre sur le wiki correspondant à $prefixe ;
+// traite les problèmes de redirection.
+function resolution_existence_page_et_redirection($titre, $prefixe='fr',
+  &$redirection=false, &$page_redirect='')
+{
+  $retour = requeteAPI('action=query&prop=revisions&titles='.urlencode($titre).
+    '&rvprop=content&format=xml', $prefixe);
+  $existence = strpos($retour, ' missing="" /></pages>') === false;
+  if ($existence)
+  {
+    $redirection = preg_match('/#(?:REDIRECT(?:ION)?|DOORVERWIJZING|'.
+      'REDIRECCIÓN)\s*\[\[([^\]]+)\]\]/', $retour, $tab) == 1;
+    if ($redirection)
+    {
+      $page_redirect = $tab[1];
+    }
   }
   return $existence;
 }

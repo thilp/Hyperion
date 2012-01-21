@@ -113,14 +113,12 @@ sub translate_title
 {
   my $title = shift;
   my @tab_prefixes = @_;
-  my %htab_translate[$local_language] = $title;
+  my $htab_translate[$local_language] = $title;
   my $wp_article = lectureArticle($title, 'wp_'.$local_language);
 
   foreach (@tab_prefixes)
   {
-    if ($_ ne $local_language)
-    {
-      
-    }
+    ($htab_translate[$_]) = ($wp_article =~ /\[\[$_:([^\]]+)\]\]/)
+      if ($_ ne $local_language);
   }
 }

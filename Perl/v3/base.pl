@@ -65,6 +65,25 @@ sub lectureArticle
   return "";
 }
 
+sub exists_or_redirects
+{
+  my ($title, $prefix, $ref_is_redirect, $ref_page_redirect) = @_;
+
+  my $retour = requeteAPI('action#=query#&prop#=revisions#&titles#='.$title.
+    '#&rvprop#=content', $prefix);
+  if ($retour !~ / missing="" \/><\/pages>/)
+  {
+    if (defined($ref_is_redirect) and $retour =~
+      /(?:REDIRECT(?:ION)?|DOORVERWIJZING|REDIRECCIÓN)\s*\[\[([^\]]+)\]\]/)
+    {
+      $$ref_is_redirect = 1;
+      $$ref_page_redirect = $1;
+    }
+    return 1;
+  }
+  return 0;
+}
+
 sub connexion
 {
   my ($pseudo,$mdp,$ref_result) = @_;
