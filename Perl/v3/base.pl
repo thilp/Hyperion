@@ -42,6 +42,10 @@ sub requeteAPI
   {
     $api = 'http://'.$1.'.wikipedia.org/w/api.php';
   }
+  if ($prefix =~ /^wikt_(\w\w)$/)
+  {
+    $api = 'http://'.$1.'.wiktionary.org/w/api.php';
+  }
 
   foreach my $champ (@params)
   {

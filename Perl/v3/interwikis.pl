@@ -106,6 +106,24 @@ sub summary
   return 'Automatic interwiki links towards'.$wikis;
 }
 
+# Uses the Wiktionaries to translate $title from the $prefix_from
+# language to the $prefix_to one.
+sub translate_with_wikt
+{
+  my ($title, $prefix_to, $prefix_from) = @_;
+  $prefix_from = 'fr' if (!defined($prefix_from));
+  $title =~ tr/A-Z/a-z/;
+
+  # Trying in the French Wiktionary
+  return $1 if (requeteAPI('action#=query#&prop#=revisions#&revprop#=content'.
+      '#&titles#='.$title, 'wikt_fr') =~ /\{\{trad[+-]*\|$prefix_to\|([^}]+)\}\}/);
+  # Trying in the $prefix_to's Wiktionary
+  my $res = requeteAPI('action#=query#&prop#=revisions#&revprop#=content'.
+      '#&titles#='.$title, 'wikt_'.$prefix_to);
+  return $1 if ($prefix_to eq 'de' and $res =~
+    /\{\{$prefix_to\}\}: \[1\] \[\[([^\]]+)\]\]/);
+}
+
 # Returns a hashtable A => B where A is a prefix in $tab_prefixes and B
 # is the translation of $title in the language corresponding to the prefix,
 # using the language-specific Wikipedia
@@ -114,11 +132,25 @@ sub translate_title
   my $title = shift;
   my @tab_prefixes = @_;
   my $htab_translate[$local_language] = $title;
+  my $htab_translate['wp'] = $title;
   my $wp_article = lectureArticle($title, 'wp_'.$local_language);
 
   foreach (@tab_prefixes)
   {
-    ($htab_translate[$_]) = ($wp_article =~ /\[\[$_:([^\]]+)\]\]/)
+    my ($translated) = ($wp_article =~ /\[\[$_:([^\]]+)\]\]/)
       if ($_ ne $local_language);
+    if (defined($translated))
+    {
+      my ($bool_redirect, $page_redirect) = (0);
+      if (exists_or_redirects($translated, $_, $bool_redirect, $page_redirect))
+      {
+	$htab_translate[$_] = $page_redirect if ($bool_redirect);
+	$htab_translate[$_] = $translated if (!$bool_redirect);
+      }
+    }
+    else
+    { # Management of the not-found-on-wp titles using Wiktionary
+      my $trad_wikt = 
+    }
   }
 }
