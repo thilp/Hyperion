@@ -126,7 +126,7 @@ sub translate_with_wikt
   return $1 if ($prefix_to eq 'es' and $res =~ /;1: ?\[\[([^\]])\|/);
   return $1 if ($prefix_to eq 'nl' and $res =~
     /\{\{=$prefixe_from[^=]*=\}\}.*'''$title'''[^#]*#[^[]*\[\[([^\]]+)\]\]/i;
-  return 0;
+  return undef;
 }
 
 # Returns a hashtable A => B where A is a prefix in $tab_prefixes and B
@@ -155,7 +155,9 @@ sub translate_title
     }
     else
     { # Management of the not-found-on-wp titles using Wiktionary
-      my $trad_wikt = 
+      my $trad_wikt = translate_with_wikt($title, $prefix);
+      $htab_translate[$_] = $trad_wikt;
     }
   }
+  return %htab_translate;
 }
