@@ -122,6 +122,8 @@ sub translate_with_wikt
       '#&titles#='.$title, 'wikt_'.$prefix_to);
   return $1 if ($prefix_to eq 'de' and $res =~
     /\{\{$prefix_to\}\}: \[1\] \[\[([^\]]+)\]\]/);
+  return $1 if ($prefix_to eq 'es' and $res =~
+    //);
 }
 
 # Returns a hashtable A => B where A is a prefix in $tab_prefixes and B
