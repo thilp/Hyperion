@@ -82,7 +82,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (0,0,43,2,27);
+my @struct = (1,0,15,42,0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
@@ -163,5 +163,5 @@ if (@ARGV == 1)
 else
 {
   print "Usage: ./hyperforce.pl USERNAME\n";
-  return 1;
+  exit 1;
 }
