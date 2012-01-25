@@ -1,7 +1,7 @@
 #! /usr/bin/perl -w
 
 # -----------------------------------------------------.
-#  * myriaforce.pl                                     !
+#  * hyperforce2.pl                                    !
 # This script is a proof-of-concept about how easy     !
 #   identity stealing can be on http://*.vikidia.org.  !
 # Therefore, it is not designed to break into an       !
