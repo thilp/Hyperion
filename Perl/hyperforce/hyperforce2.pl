@@ -97,7 +97,7 @@ sub connexion
 # PASSWORD GENERATION
 
 # @struct describes the password structure
-my @struct = (1,0,15,42,0);
+my @struct = (1,0,22,15,0);
 # @table contains all the strings that can be assembled to generate $pwd
 my @table = (
   # WORDS
