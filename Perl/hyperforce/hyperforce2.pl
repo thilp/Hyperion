@@ -22,7 +22,6 @@ use strict;
 use List::Util qw(min);
 use LWP::UserAgent;
 use HTTP::Cookies;
-use Data::Dumper;
 
 print "\n    *** Welcome to hyperforce! ***\n\n";
 print "  This little script tries to guess your target's password on Vikidia.\n";
