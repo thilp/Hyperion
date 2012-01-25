@@ -23,7 +23,7 @@ use List::Util qw(min);
 use LWP::UserAgent;
 use HTTP::Cookies;
 
-print "\n    *** Welcome to hyperforce! ***\n\n";
+print "\n    *** Welcome to hyperforce2! ***\n\n";
 print "  This little script tries to guess your target's password on Vikidia.\n";
 print "  It is able to do it because of a *major security breach* in the\n";
 print "  MediaWiki's authentication process which allows a new login request\n";
@@ -197,7 +197,7 @@ my @thread_array;
 
 if (@ARGV == 0)
 {
-  print "Usage: ./hyperforce.pl <target> [<number of threads>]\n";
+  print "Usage: ./hyperforce2.pl <target> [<number of threads>]\n";
   exit 1;
 }
 
