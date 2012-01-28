@@ -116,12 +116,17 @@ sub translate_with_wikt
 
   # Trying in the French Wiktionary
   return $1 if (requeteAPI('action#=query#&prop#=revisions#&revprop#=content'.
-      '#&titles#='.$title, 'wikt_fr') =~ /\{\{trad[+-]*\|$prefix_to\|([^}]+)\}\}/);
+      '#&titles#='.$title, 'wikt_fr') =~
+      /\{\{trad[+-]*\|$prefix_to\|([^}]+)\}\}/);
   # Trying in the $prefix_to's Wiktionary
   my $res = requeteAPI('action#=query#&prop#=revisions#&revprop#=content'.
       '#&titles#='.$title, 'wikt_'.$prefix_to);
   return $1 if ($prefix_to eq 'de' and $res =~
     /\{\{$prefix_to\}\}: \[1\] \[\[([^\]]+)\]\]/);
+  return $1 if ($prefix_to eq 'es' and $res =~ /;1: ?\[\[([^\]])\|/);
+  return $1 if ($prefix_to eq 'nl' and $res =~
+    /\{\{=$prefixe_from[^=]*=\}\}.*'''$title'''[^#]*#[^[]*\[\[([^\]]+)\]\]/i;
+  return undef;
 }
 
 # Returns a hashtable A => B where A is a prefix in $tab_prefixes and B
@@ -150,7 +155,9 @@ sub translate_title
     }
     else
     { # Management of the not-found-on-wp titles using Wiktionary
-      my $trad_wikt = 
+      my $trad_wikt = translate_with_wikt($title, $prefix);
+      $htab_translate[$_] = $trad_wikt;
     }
   }
+  return %htab_translate;
 }

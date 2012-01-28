@@ -18,7 +18,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 
 print "\n    *** Welcome to hyperforce! ***\n\n";
-print "  This little script try to guess your target's password on Vikidia.\n";
+print "  This little script tries to guess your target's password on Vikidia.\n";
 print "  It is able to do it because of a *major security breach* in the\n";
 print "  MediaWiki's authentication process which allows a new login request\n";
 print "  immediatly after an erroneous one.\n\n";
@@ -163,5 +163,5 @@ if (@ARGV == 1)
 else
 {
   print "Usage: ./hyperforce.pl USERNAME\n";
-  return 1;
+  exit 1;
 }

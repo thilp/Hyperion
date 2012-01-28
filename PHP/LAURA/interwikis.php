@@ -136,8 +136,8 @@ function traduction_titre($titre, $tabPrefixes)
   return $tabRetour;
 }
 
-// Tente de traduire $titre (mot de la langue correspondant à $prefixe_de) dans
-// la langue correspondant à $prefixe_vers avec les Wiktionnaires.
+// Tente de traduire $titre (mot de la langue correspondant au $prefixe_de)
+// dans la langue correspondant au $prefixe_vers avec les Wiktionnaires.
 function traduction_titre_wiktionary($titre, $prefixe_vers, $prefixe_de='fr')
 {
    // Tentative dans le Wiktionnaire francophone.
