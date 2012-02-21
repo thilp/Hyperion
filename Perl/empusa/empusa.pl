@@ -120,11 +120,10 @@ sub act
   # Getting the tokens
   my $rep = requeteAPI('action#=block#&user#=Greta GarBot#&gettoken', 'es');
   my ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
-  $block_token .= '%2B%5C';
-  $rep = requeteAPI('action#=query#&titles#=Vikidia:Portada#&prop#=info#&'.
-    'intoken#=delete', 'es');
+  $rep = requeteAPI('action#=query#&prop#=info#&intoken#=delete'.
+    '#&titles#=Vikidia:Portada', 'es');
   my ($delete_token) = ($rep =~ /\bdeletetoken="([a-f0-9]+)\+\\"/);
-  $delete_token .= '%2B%5C';
+  $delete_token .= '+\\';
   foreach (keys(%candidates))
   {
     $counteracts{$_} = 0 if (!exists($counteracts{$_}));
@@ -136,14 +135,14 @@ sub act
 	print "Blocking $_... ";
 	# Blocking
 	$rep = requeteAPI('action#=block#&user#='.$_.
-	  '#&reason#=Automatic_spam_fighter#&nocreate#&autoblock#&token#='.
+	  '#&reason#=Automatic spam fighter#&nocreate#&autoblock#&token#='.
 	  $block_token, 'es');
 	print $rep."\nDeleting the $_ article... ";
 	$rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
-	  'Automatic_spam_fighter#&token#='.$delete_token, 'es');
+	  'Automatic spam fighter#&token#='.$delete_token, 'es');
 	print $rep."\n Deleting the $_ user page... ";
 	$rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
-	  'Automatic_spam_fighter#&token#='.$delete_token, 'es');
+	  'Automatic spam fighter#&token#='.$delete_token, 'es');
 	print $rep."\n";
       #}
     }
