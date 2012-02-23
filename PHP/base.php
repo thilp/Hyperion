@@ -1,5 +1,5 @@
 <?php
-// Fonction de requête cURL
+// Fonction de requête URL
 function cURL($url, $cook, $post)
 {
   $ch = curl_init();
@@ -10,7 +10,8 @@ function cURL($url, $cook, $post)
   curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
   curl_setopt($ch, CURLOPT_HTTPHEADER,
     Array('Content-type: application/x-www-form-urlencoded',
-	  'User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) Gecko/20100115 Firefox/3.6'));
+    'User-Agent: Mozilla/5.0 (Windows; U; Windows NT 6.1; fr; rv:1.9.2) '.
+    'Gecko/20100115 Firefox/3.6'));
   curl_setopt ($ch, CURLOPT_COOKIEJAR, $cook);
   curl_setopt ($ch, CURLOPT_COOKIEFILE, $cook);
   $reponse = curl_exec($ch);

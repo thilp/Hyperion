@@ -62,7 +62,7 @@ sub requeteAPI
       Content_Type => 'application/x-www-form-urlencoded',
       Content => \%params
     );
-    print ((11 - $attempts).". Error: ".$rep->status_line."\n")
+    print((11 - $attempts).". Error: ".$rep->status_line."\n")
       unless $rep->is_success;
     $attempts-- unless $rep->is_success;
     $attempts = 0 if $rep->is_success;

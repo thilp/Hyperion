@@ -142,9 +142,19 @@ sub spam_fighter_1
     {
       print "Caught: $_: $candidates{$_}/$counteracts{$_}\n";
       # Blocking
+      if ($_ =~ /'/)
+      {
+	print "\033[41mWARNING:\033[0m ";
+	print "due to what is probably a bug in the MediaWiki API, ";
+	print "you must block \"by-hand\" the ".$_."'s account.\n";
+      }
+      else
+      {
       $rep = requeteAPI('action#=block#&user#='.$_.
 	'#&reason#=Automatic spam fighter#&nocreate#&autoblock#&token#='.
 	$block_token, 'es');
+      }
+      # and deleting
       $rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
 	'Automatic spam fighter#&token#='.$delete_token, 'es');
       $rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
@@ -155,7 +165,7 @@ sub spam_fighter_1
 
 sub act
 {
-  print "\n\tStep 1: Beautiful stories ###\n";
+  print "\tStep 1: Beautiful stories ###\n";
   spam_fighter_1 ();
   #print "\n\tStep 2: Websites dance ###\n";
   #spam_fighter_2 ();
@@ -166,15 +176,15 @@ sub act
 
 if (connexion('Greta GarBot', '', 'es'))
 {
-  print "Greta GarBot is now connected.\n";
+  print "\n\033[32mGreta GarBot is now \033[01mconnected\033[0m\n";
 }
 else
 {
-  print "Connexion failure!\n";
+  print "\033[31m\033[01mConnexion failure!\033[0m\n";
   exit;
 }
 
 act ();
 
 my $rep = requeteAPI('action#=logout', 'es');
-print "Greta GarBot is now disconnected\n";
+print "\033[32mGreta GarBot is now \033[01mdisconnected\033[0m\n";
