@@ -24,7 +24,18 @@ sub rc_action
   return $type;
 }
 
-sub get_special_rc
+sub get_special_rc_1
+{
+  my $rep = requeteAPI ('action#=query#&list#=recentchanges#&rcnamespace#=0|2'.
+    '#&rcprop#=user|timestamp|title|sizes|loginfo'.
+    '#&rcshow#=!anon|!redirect#&rclimit#=5000'.
+    '#&rcexcludeuser#=Penarc#&rctype#=new|log', 'es');
+  $rep =~ s/^.+<recentchanges><rc (.*)( \/>|<\/rc>)<\/recentchanges>.+$/$1/s;
+  my @tab = split (/<rc /, $rep);
+  return @tab;
+}
+
+sub get_special_rc_2
 {
   my $rep = requeteAPI ('action#=query#&list#=recentchanges#&rcnamespace#=0|2'.
     '#&rcprop#=user|timestamp|title|sizes|loginfo'.
@@ -39,16 +50,16 @@ sub recognize_spam_pseudo
 {
   my $ref_pseudo = $_[0];
   $$ref_pseudo =~ s/^Usuario://;
-  return 1 if ($$ref_pseudo =~ /^[A-Z][a-z]+[A-Z][a-z]+\d{3}$/);
-  return 1 if ($$ref_pseudo =~ /^[A-Z][a-z]+[A-Z][a-z]+\d[a-z]\d{2}$/);
+  return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d{2,4}$/);
+  return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d[a-z]\d{2}$/);
   return 0;
 }
 
-sub spam_filter
+sub spam_filter_1
 {
   # Use get_special_rc() to get the RC list, then keep only the pseudo of the
   # spambots and return them in an @array
-  my @rc = get_special_rc ();
+  my @rc = get_special_rc_1 ();
   my ($ref_candidates, $ref_timestamps, $ref_sizes, $ref_counteracts) = @_;
   foreach (@rc)
   {
@@ -110,13 +121,13 @@ sub spam_filter
   }
 }
 
-sub act
+sub spam_fighter_1
 {
   my %candidates;
   my %timestamps;
   my %sizes;
   my %counteracts;
-  spam_filter(\%candidates, \%timestamps, \%sizes, \%counteracts);
+  spam_filter_1(\%candidates, \%timestamps, \%sizes, \%counteracts);
   # Getting the tokens
   my $rep = requeteAPI('action#=block#&user#=Greta GarBot#&gettoken', 'es');
   my ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
@@ -130,24 +141,28 @@ sub act
     if ($candidates{$_} > 0 and $counteracts{$_} < 10)
     {
       print "Caught: $_: $candidates{$_}/$counteracts{$_}\n";
-      #if ($counteracts{$_} eq "0") # Delete all pages & block the user
-      #{
-	print "Blocking $_... ";
-	# Blocking
-	$rep = requeteAPI('action#=block#&user#='.$_.
-	  '#&reason#=Automatic spam fighter#&nocreate#&autoblock#&token#='.
-	  $block_token, 'es');
-	print $rep."\nDeleting the $_ article... ";
-	$rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
-	  'Automatic spam fighter#&token#='.$delete_token, 'es');
-	print $rep."\n Deleting the $_ user page... ";
-	$rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
-	  'Automatic spam fighter#&token#='.$delete_token, 'es');
-	print $rep."\n";
-      #}
+      # Blocking
+      $rep = requeteAPI('action#=block#&user#='.$_.
+	'#&reason#=Automatic spam fighter#&nocreate#&autoblock#&token#='.
+	$block_token, 'es');
+      $rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
+	'Automatic spam fighter#&token#='.$delete_token, 'es');
+      $rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
+	'Automatic spam fighter#&token#='.$delete_token, 'es');
     }
   }
 }
+
+sub act
+{
+  print "\n\tStep 1: Beautiful stories ###\n";
+  spam_fighter_1 ();
+  #print "\n\tStep 2: Websites dance ###\n";
+  #spam_fighter_2 ();
+}
+
+#####################################################################
+#####################################################################
 
 if (connexion('Greta GarBot', '', 'es'))
 {
@@ -163,4 +178,3 @@ act ();
 
 my $rep = requeteAPI('action#=logout', 'es');
 print "Greta GarBot is now disconnected\n";
-exit 0;
