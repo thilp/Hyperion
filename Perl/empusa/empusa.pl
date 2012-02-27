@@ -37,10 +37,9 @@ sub get_special_rc_1
 
 sub get_special_rc_2
 {
-  my $rep = requeteAPI ('action#=query#&list#=recentchanges#&rcnamespace#=0|2'.
-    '#&rcprop#=user|timestamp|title|sizes|loginfo'.
-    '#&rcshow#=!anon|!redirect#&rclimit#=5000'.
-    '#&rcexcludeuser#=Penarc#&rctype#=new|log', 'es');
+  my $rep = requeteAPI ('action#=query#&list#=recentchanges#&rcnamespace#=0'.
+    '#&rcprop#=user|title|comment#&rcshow#=!anon|!redirect'.
+    '#&rcexcludeuser#=Penarc#&rctype#=new#&rclimit#=5000', 'es');
   $rep =~ s/^.+<recentchanges><rc (.*)( \/>|<\/rc>)<\/recentchanges>.+$/$1/s;
   my @tab = split (/<rc /, $rep);
   return @tab;
@@ -128,13 +127,6 @@ sub spam_fighter_1
   my %sizes;
   my %counteracts;
   spam_filter_1(\%candidates, \%timestamps, \%sizes, \%counteracts);
-  # Getting the tokens
-  my $rep = requeteAPI('action#=block#&user#=Greta GarBot#&gettoken', 'es');
-  my ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
-  $rep = requeteAPI('action#=query#&prop#=info#&intoken#=delete'.
-    '#&titles#=Vikidia:Portada', 'es');
-  my ($delete_token) = ($rep =~ /\bdeletetoken="([a-f0-9]+)\+\\"/);
-  $delete_token .= '+\\';
   foreach (keys(%candidates))
   {
     $counteracts{$_} = 0 if (!exists($counteracts{$_}));
@@ -150,25 +142,70 @@ sub spam_fighter_1
       }
       else
       {
-      $rep = requeteAPI('action#=block#&user#='.$_.
-	'#&reason#=Automatic spam fighter#&nocreate#&autoblock#&token#='.
-	$block_token, 'es');
+      my $rep = requeteAPI('action#=block#&user#='.$_.
+	'#&reason#=Automatic spam fighter: beautiful stories#&nocreate'.
+	'#&autoblock#&token#='.$main::block_token, 'es');
       }
       # and deleting
-      $rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
-	'Automatic spam fighter#&token#='.$delete_token, 'es');
+      my $rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
+	'Automatic spam fighter: beautiful stories#&token#='.
+	$main::delete_token, 'es');
       $rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
-	'Automatic spam fighter#&token#='.$delete_token, 'es');
+	'Automatic spam fighter: beautiful stories#&token#='.
+	$main::delete_token, 'es');
     }
+  }
+}
+
+sub spam_filter_2
+{
+  my $ref_tbl = $_[0];
+  my @rc = get_special_rc_2();
+  foreach (@rc)
+  {
+    my ($title, $user, $comment) =
+      ($_ =~ /^type="new" ns="0" title="([^"]+)" user="([^"]+)" comment="([^"]+)"/);
+    $ref_tbl->{$title} = $user
+      if ($comment =~ /^Página creada con \\' ==<center>/);
+  }
+}
+
+sub spam_fighter_2
+{
+  my %tbl;
+  spam_filter_2(\%tbl);
+  foreach (keys(%tbl))
+  {
+    print "Caught: $tbl{$_} on $_\n";
+    # Blocking
+    if ($tbl{$_} =~ /'/)
+    {
+      print "\033[41mWARNING:\033[0m ";
+      print "due to what is probably a bug in the MediaWiki API, ";
+      print "you must block \"by-hand\" the ".$tbl{$_}."'s account.\n";
+    }
+    else
+    {
+      my $rep = requeteAPI('action#=block#&user#='.$tbl{$_}.
+	'#&reason#=Automatic spam fighter: websites dance#&nocreate'.
+	'#&autoblock#&token#='.$main::block_token, 'es');
+    }
+    # and deleting
+    my $rep = requeteAPI('action#=delete#&title#='.$_.'#&reason#='.
+      'Automatic spam fighter: websites dance#&token#='.
+      $main::delete_token, 'es');
+    $rep = requeteAPI('action#=delete#&title#=Usuario:'.$_.'#&reason#='.
+      'Automatic spam fighter: websites dance#&token#='.
+      $main::delete_token, 'es');
   }
 }
 
 sub act
 {
-  print "\tStep 1: Beautiful stories ###\n";
+  print "\t\033[35mStep 1: Beautiful stories ###\033[0m\n";
   spam_fighter_1 ();
-  #print "\n\tStep 2: Websites dance ###\n";
-  #spam_fighter_2 ();
+  print "\t\033[35mStep 2: Websites dance ###\033[0m\n";
+  spam_fighter_2 ();
 }
 
 #####################################################################
@@ -176,7 +213,7 @@ sub act
 
 if (connexion('Greta GarBot', '', 'es'))
 {
-  print "\n\033[32mGreta GarBot is now \033[01mconnected\033[0m\n";
+  print "\033[32mGreta GarBot is now \033[01mconnected\033[0m\n";
 }
 else
 {
@@ -184,7 +221,15 @@ else
   exit;
 }
 
+# Getting the tokens
+my $rep = requeteAPI('action#=block#&user#=Greta GarBot#&gettoken', 'es');
+our ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
+$rep = requeteAPI('action#=query#&prop#=info#&intoken#=delete'.
+  '#&titles#=Vikidia:Portada', 'es');
+our ($delete_token) = ($rep =~ /\bdeletetoken="([a-f0-9]+)\+\\"/);
+$delete_token .= '+\\';
+
 act ();
 
-my $rep = requeteAPI('action#=logout', 'es');
+$rep = requeteAPI('action#=logout', 'es');
 print "\033[32mGreta GarBot is now \033[01mdisconnected\033[0m\n";
