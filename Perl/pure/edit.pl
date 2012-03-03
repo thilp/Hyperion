@@ -13,8 +13,11 @@ require "base.pl";
 sub getJeton_edit
 {
   my $jeton;
-  return $jeton if (($jeton) = (requeteAPI('action#=query#&prop#=info'.
-    '#&intoken#=edit#&titles#=T') =~ /\bedittoken="([^"]+)/));
+  return $jeton if (($jeton) = (api_get (
+	'action' => 'query',
+	'prop' => 'info',
+	'intoken' => 'edit',
+	'titles' => 'T') =~ /\bedittoken="([^"]+)/));
   return 0;
 }
 
@@ -22,10 +25,14 @@ sub edit
 {
   my ($titre,$texte,$resume,$bot) = @_;
   my $jetonEdit = getJeton_edit() unless defined($jetonEdit);
+  my %args;
 
-  if ($bot) { $bot = "#&bot#=1"; } else { $bot = ""; }
-  my $rep = requeteAPI('action#=edit#&title#='.$titre.'#&text#='.$texte.
-    '#&token#='.$jetonEdit.'#&summary#='.$resume.'#&notminor#=1'.$bot);
+  $args{'bot'} = '1' if ($bot);
+  my $rep = api_get (
+    'action' => 'edit',
+    'title' => $titre,
+    'text' => $texte,
+    'token' => $jetonEdit, 'summary' => $resume, 'notminor' => '1');
   return 1 if ($rep =~ /\bresult="Success"/);
   return 0;
 }
