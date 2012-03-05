@@ -14,7 +14,7 @@ require 'base.pl';
 #####################################################################
 #####################################################################
 
-print "   \033[35m\033[01mThis is PURPLE v2!\033[0m\n";
+print "   \033[35m\033[01mThis is PURPLE v2.1!\033[0m\n";
 
 if (connexion('Greta GarBot', '', 'es'))
 {
@@ -198,10 +198,11 @@ sub spam_fighter_1
   my %sizes;
   my %counteracts;
   spam_filter_1(\%candidates, \%timestamps, \%sizes, \%counteracts);
+  print "Searching...\n";
   foreach (keys(%candidates))
   {
     $counteracts{$_} = 0 if (!exists($counteracts{$_}));
-    if ($candidates{$_} > 0 and $counteracts{$_} < 10)
+    if ($candidates{$_} > 1 or $counteracts{$_} == 0)
     {
       print "Caught: $_: $candidates{$_}/$counteracts{$_}\n";
       # Blocking
@@ -237,6 +238,7 @@ sub spam_fighter_1
 	'prefix' => 'es');
     }
   }
+  print "Done.\n";
 }
 
 sub spam_filter_2
@@ -304,8 +306,11 @@ sub to_pseudo_form_3
   if ($pseudo !~ s/^Usuario://)
   {
     my $offset = index ($pseudo, " ", 0);
-    $pseudo =~ s/ //g;
-    substr($pseudo, $offset) = ucfirst (lc (substr ($pseudo, $offset)));
+    if ($offset > 0)
+    {
+      $pseudo =~ s/ //g;
+      substr($pseudo, $offset) = ucfirst (lc (substr ($pseudo, $offset)));
+    }
   }
   return $pseudo;
 }
