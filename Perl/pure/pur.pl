@@ -6,7 +6,6 @@
 # in Perl on March 2012                             #
 ####################################################
 
-use Data::Dumper;
 use strict;
 require 'base.pl';
 
@@ -120,7 +119,7 @@ sub recognize_spam_pseudo
 {
   my $ref_pseudo = $_[0];
   $$ref_pseudo =~ s/^Usuario://;
-  return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d{1,4}$/);
+  return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d{1,4}[a-z]?$/);
   return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d[a-z]\d{2}$/);
   return 0;
 }
@@ -354,7 +353,7 @@ sub spam_fighter_3
     api_get (
       'action' => 'delete',
       'title' => $_,
-      'reason' => 'Automatic spam fighter: ',
+      'reason' => 'Automatic spam fighter: OdysseyInonepseudo',
       'token' => $delete_token,
       'prefix' => 'es');
   }
@@ -372,6 +371,66 @@ sub spam_fighter_3
   }
 }
 
+sub spam_filter_4
+{
+  my $ref_block = $_[0];
+  my @rc = get_special_rc_3 (); # same needs
+  my %seen;
+  foreach (@rc)
+  {
+    my ($title, $user) = ($_ =~
+      /^type="new" ns="[02]" title="(?:Usuario:)?([^"]+)" user="([^"]+)"$/);
+    if ($title eq $user)
+    {
+      if (exists($seen{$user}))
+      {
+	push (@$ref_block, $user);
+      }
+      else
+      {
+	$seen{$user} = 1;
+      }
+    }
+  }
+}
+
+sub spam_fighter_4
+{
+  my @to_block;
+  spam_filter_4 (\@to_block);
+  if (!@to_block)
+  {
+    print "(nothing to do)\n";
+    return;
+  }
+  foreach (@to_block)
+  {
+    print "Deleting $_...\n";
+    api_get (
+      'action' => 'delete',
+      'title' => $_,
+      'reason' => 'Automatic spam fighter: eradication',
+      'token' => $delete_token,
+      'prefix' => 'es');
+    print "Deleting $_...\n";
+    api_get (
+      'action' => 'delete',
+      'title' => 'Usuario:'.$_,
+      'reason' => 'Automatic spam fighter: eradication',
+      'token' => $delete_token,
+      'prefix' => 'es');
+    print "Blocking $_...\n";
+    api_get (
+      'action' => 'block',
+      'user' => $_,
+      'reason' => 'Automatic spam fighter: eradication',
+      'nocreate' => '',
+      'autoblock' => '',
+      'token' => $block_token,
+      'prefix' => 'es');
+  }
+}
+
 sub act
 {
   print "\t\033[35mStep 1: Beautiful stories ###\033[0m\n";
@@ -380,4 +439,6 @@ sub act
   spam_fighter_2 ();
   print "\t\033[35mStep 3: OdysseyInonepseudo ###\033[0m\n";
   spam_fighter_3 ();
+  print "\t\033[35mStep 4: Eradication ###\033[0m\n";
+  spam_fighter_4 ();
 }
