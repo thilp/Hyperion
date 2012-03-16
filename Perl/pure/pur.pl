@@ -9,42 +9,61 @@
 use strict;
 require 'base.pl';
 
+my @es_login = ('Greta GarBot', '');
+my @fr_login = ('thilp', '');
+
+my %logins = (
+  'es' => \@es_login,
+  'fr' => \@fr_login
+);
+
 
 #####################################################################
 #####################################################################
 
-print "   \033[35m\033[01mThis is PURPLE v2.1!\033[0m\n";
+our ($logged_user, $wiki, $block_token, $delete_token);
 
-if (connexion('Greta GarBot', '', 'es'))
+print "   \033[35m\033[01mThis is PURPLE v3!\033[0m\n";
+
+foreach (keys (%logins))
 {
-  print "\033[32mGreta GarBot is now \033[01mconnected\033[0m\n";
+  my $ref_logtab = $logins{$_};
+
+  local ($logged_user, $wiki) = ($$ref_logtab[0], $_);
+
+  print "Connecting on ".$_.".vikidia.org as ".$logged_user."...\n";
+  if (connexion ($logged_user, $$ref_logtab[1], $_))
+  {
+    print "\033[32m".$logged_user." is now \033[01mconnected\033[0m\n";
+
+    # Getting the tokens
+    my $rep = api_get (
+      'action' => 'block',
+      'user' => $logged_user,
+      'gettoken' => '',
+      'prefix' => $wiki);
+    local ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
+    $rep = api_get (
+      'action' => 'query',
+      'prop' => 'info',
+      'intoken' => 'delete',
+      'titles' => 'User:'.$logged_user,
+      'prefix' => $wiki);
+    local ($delete_token) = ($rep =~ /\bdeletetoken="([a-f0-9]+)\+\\"/);
+    $delete_token .= '+\\';
+
+    act ();
+
+    $rep = api_get ('action' => 'logout', 'prefix' => $wiki);
+    print "\033[32m".$logged_user." is now \033[01mdisconnected\033[0m from ".
+      $wiki.".vikidia.org\n";
+  }
+  else
+  {
+    print "\033[31m\033[01mConnexion failed!\033[0m\n";
+  }
 }
-else
-{
-  print "\033[31m\033[01mConnexion failure!\033[0m\n";
-  exit (1);
-}
 
-# Getting the tokens
-my $rep = api_get (
-  'action' => 'block',
-  'user' => 'Greta GarBot',
-  'gettoken' => '',
-  'prefix' => 'es');
-my ($block_token) = ($rep =~ /\bblocktoken="([a-f0-9]+)\+\\"/);
-$rep = api_get (
-  'action' => 'query',
-  'prop' => 'info',
-  'intoken' => 'delete',
-  'titles' => 'Vikidia:Portada',
-  'prefix' => 'es');
-my ($delete_token) = ($rep =~ /\bdeletetoken="([a-f0-9]+)\+\\"/);
-$delete_token .= '+\\';
-
-act ();
-
-$rep = api_get ('action' => 'logout', 'prefix' => 'es');
-print "\033[32mGreta GarBot is now \033[01mdisconnected\033[0m\n";
 
 #####################################################################
 #####################################################################
@@ -72,10 +91,9 @@ sub get_special_rc_1
     'rcnamespace' => '0|2',
     'rcprop' => 'user|timestamp|title|sizes|loginfo',
     'rcshow' => '!anon|!redirect',
-    'rclimit' => '5000',
-    'rcexcludeuser' => 'Penarc',
+    'rclimit' => '500',
     'rctype' => 'new|log',
-    'prefix' => 'es');
+    'prefix' => $wiki);
   $rep =~ s/^.+<recentchanges><rc (.*)( \/>|<\/rc>)<\/recentchanges>.+$/$1/s;
   my @tab = split (/<rc /, $rep);
   return @tab;
@@ -89,10 +107,9 @@ sub get_special_rc_2
     'rcnamespace' => '0',
     'rcprop' => 'user|title|comment',
     'rcshow' => '!anon|!redirect',
-    'rcexcludeuser' => 'Penarc',
     'rctype' => 'new',
-    'rclimit' => '5000',
-    'prefix' => 'es');
+    'rclimit' => '500',
+    'prefix' => $wiki);
   $rep =~ s/^.+<recentchanges><rc (.*)( \/>|<\/rc>)<\/recentchanges>.+$/$1/s;
   my @tab = split (/<rc /, $rep);
   return @tab;
@@ -106,10 +123,9 @@ sub get_special_rc_3
     'rcnamespace' => '0|2',
     'rcprop' => 'user|title',
     'rcshow' => '!redirect|!bot|!anon',
-    'rcexcludeuser' => 'Penarc',
     'rctype' => 'new',
-    'rclimit' => '5000',
-    'prefix' => 'es');
+    'rclimit' => '500',
+    'prefix' => $wiki);
   $rep =~ s/^.+<recentchanges><rc (.*)( \/>|<\/rc>)<\/recentchanges>.+$/$1/s;
   my @tab = split (/ \/><rc /, $rep);
   return @tab;
@@ -118,7 +134,7 @@ sub get_special_rc_3
 sub recognize_spam_pseudo
 {
   my $ref_pseudo = $_[0];
-  $$ref_pseudo =~ s/^Usuario://;
+  $$ref_pseudo =~ s/^(Usuario|Utilisateur)://;
   return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d{1,4}[a-z]?$/);
   return 1 if ($$ref_pseudo =~ /^[A-Z]'?[a-z]+[A-Z][a-z]+\d[a-z]\d{2}$/);
   return 0;
@@ -201,7 +217,7 @@ sub spam_fighter_1
   foreach (keys(%candidates))
   {
     $counteracts{$_} = 0 if (!exists($counteracts{$_}));
-    if ($candidates{$_} > 1 or $counteracts{$_} == 0)
+    if (($wiki ne 'fr' and $counteracts{$_} == 0) or $candidates{$_} > 1)
     {
       print "Caught: $_: $candidates{$_}/$counteracts{$_}\n";
       # Blocking
@@ -220,7 +236,7 @@ sub spam_fighter_1
 	'nocreate' => '',
 	'autoblock' => '',
 	'token' => $block_token,
-	'prefix' => 'es');
+	'prefix' => $wiki);
       }
       # and deleting
       my $rep = api_get (
@@ -228,13 +244,13 @@ sub spam_fighter_1
 	'title' => $_,
 	'reason' => 'Automatic spam fighter: beautiful stories',
 	'token' => $delete_token,
-	'prefix' => 'es');
+	'prefix' => $wiki);
       $rep = api_get (
 	'action' => 'delete',
-	'title' => 'Usuario:'.$_,
+	'title' => 'User:'.$_,
 	'reason' => 'Automatic spam fighter: beautiful stories',
 	'token' => $delete_token,
-	'prefix' => 'es');
+	'prefix' => $wiki);
     }
   }
   print "Done.\n";
@@ -281,7 +297,7 @@ sub spam_fighter_2
 	'nocreate' => '',
 	'autoblock' => '',
 	'token' => $block_token,
-	'prefix' => 'es');
+	'prefix' => $wiki);
     }
     # and deleting
     my $rep = api_get (
@@ -289,20 +305,20 @@ sub spam_fighter_2
       'title' => $_,
       'reason' => 'Automatic spam fighter: websites dance',
       'token' => $delete_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
     $rep = api_get (
       'action' => 'delete',
-      'title' => 'Usuario:'.$_,
+      'title' => 'User:'.$_,
       'reason' => 'Automatic spam fighter: websites dance',
       'token' => $delete_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
   }
 }
 
 sub to_pseudo_form_3
 {
   my $pseudo = $_[0];
-  if ($pseudo !~ s/^Usuario://)
+  if ($pseudo !~ s/^(Usuario|Utilisateur)://)
   {
     my $offset = index ($pseudo, " ", 0);
     if ($offset > 0)
@@ -355,7 +371,7 @@ sub spam_fighter_3
       'title' => $_,
       'reason' => 'Automatic spam fighter: OdysseyInonepseudo',
       'token' => $delete_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
   }
   foreach (@to_block)
   {
@@ -367,7 +383,7 @@ sub spam_fighter_3
       'nocreate' => '',
       'autoblock' => '',
       'token' => $block_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
   }
 }
 
@@ -411,14 +427,14 @@ sub spam_fighter_4
       'title' => $_,
       'reason' => 'Automatic spam fighter: eradication',
       'token' => $delete_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
     print "Deleting $_...\n";
     api_get (
       'action' => 'delete',
-      'title' => 'Usuario:'.$_,
+      'title' => 'User:'.$_,
       'reason' => 'Automatic spam fighter: eradication',
       'token' => $delete_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
     print "Blocking $_...\n";
     api_get (
       'action' => 'block',
@@ -427,7 +443,7 @@ sub spam_fighter_4
       'nocreate' => '',
       'autoblock' => '',
       'token' => $block_token,
-      'prefix' => 'es');
+      'prefix' => $wiki);
   }
 }
 
